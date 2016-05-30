@@ -102,3 +102,14 @@ am_lat <- data.frame(codigo_UNComTrade = c(32, 68, 76, 152, 170, 192, 214, 218,
                      "Nicaragua", "Panama", "Paraguay", "Peru",
                      "Trinidad y Tobago", "Uruguay", "Venezuela"))
 am_lat
+
+comercioAL <- vector("list", nrow(am_lat))
+for (pais in 1:nrow(am_lat)) {
+  comercioAL[pais] <- get.Comtrade(am_lat[pais,1])
+}
+
+saveRDS(comercioAL,file = "dados_lista.rds")
+
+comercioAL <- do.call(rbind, comercioAL)
+
+saveRDS(comercioAL,file = "dados_df.rds")
