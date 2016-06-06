@@ -5,7 +5,6 @@ library(ggplot2)
 
 rm(list=ls())
 
-precos <- readRDS("precos_commodities.rds")
 export <- readRDS("dados_df.rds")
 
 # Verifica quais colunas são inuteis (apenas NAs)
@@ -16,11 +15,6 @@ export <- export[ , -c(15:21, 25:31, 33:35)]
 export <- export %>% filter(Trade.Flow == "Export")
 # Organiza dados por valor decrescente
 export <- export %>% arrange(desc(Trade.Value..US..))
-
-
-ven <- export %>% filter(Reporter == "Venezuela", 
-                         Partner == "World",
-                         Year == 2013)
 
 # Verifica tamanho do objeto
 object.size(export)/10^6 # em Mb
