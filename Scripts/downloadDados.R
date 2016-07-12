@@ -1,3 +1,12 @@
+# Retire o jogo da velha caso não possua os pacoques listados abaixo:
+# install.packages("dplyr")
+# install.packages("readxl")
+# install.packages("rjson")
+
+library(dplyr)
+library(readxl)
+library(rjson)
+
 ###########################
 #### Download de dados ####
 #### do Banco Mundial: ####
@@ -5,18 +14,13 @@
 ####    mercadorias    ####
 ###########################
 
-install.packages("dplyr")
-install.packages("readxl")
-library(dplyr)
-library(readxl)
-
 # Download de dados do Banco Mundial
-download.file("http://siteresources.worldbank.org/INTPROSPECTS/Resources/GemDataEXTR.zip", 
-              destfile = "GEMData.zip")
 if (dir.exists("Dados") == FALSE) dir.create("Dados")
-arquivosGEM <- unzip(zipfile = "GEMData.zip", list = T)
+download.file("http://siteresources.worldbank.org/INTPROSPECTS/Resources/GemDataEXTR.zip", 
+              destfile = "Dados/GEMData.zip")
+arquivosGEM <- unzip(zipfile = "Dados/GEMData.zip", list = T)
 commodities <- grep(pattern = "[C|c]ommodity", x = arquivosGEM)
-unzip(zipfile = "GEMData.zip", files = arquivosGEM[commodities,1], exdir = "Dados")
+unzip(zipfile = "Dados/GEMData.zip", files = arquivosGEM[commodities,1], exdir = "Dados")
 arquivo <- list.files("Dados")
 
 # Abre no R arquivo com dados dos precos mundais das princiais mercadorias
@@ -27,7 +31,8 @@ precos <- precos[-1, ]
 names(precos)[1] <- "Ano"
 
 # Salva dados como objeto do R
-saveRDS(object = precos, file = "precos_commodities.rds")
+if (dir.exists("Arquivos RDS") == FALSE) dir.create("Arquivos RDS")
+saveRDS(object = precos, file = "Arquivos RDS/precos_commodities.rds")
 
 ################################
 ####   Download de dados    ####
@@ -37,8 +42,6 @@ saveRDS(object = precos, file = "precos_commodities.rds")
 ################################
 
 # Download de dados UNComTrade com API
-install.packages("rjson")
-library(rjson)
 
 # Define função para download de dados baseado no API da UnComTrade
 get.Comtrade <- function(r, # Area do relatorio. Um numero por pais
@@ -51,7 +54,7 @@ get.Comtrade <- function(r, # Area do relatorio. Um numero por pais
                          p = "all", # Todos parceiros comerciais
                          rg = "all", # Regime de comercio (import, export)
                          cc = "AG2", # Nivel de detalhamento
-                         fmt = "csv" # Formato CSV
+                         fmt = "json" # Formato CSV
 )
 {
   string<- paste(url
@@ -148,18 +151,43 @@ while (sum(erros) > 0){
 # comercioAL[[which(erros == TRUE)]] <- (get.Comtrade(am_lat[which(erros == TRUE),1]))
 
 # Salva os dados como objeto(lista) do R
-saveRDS(comercioAL,file = "dados_lista.rds")
+saveRDS(comercioAL,file = "dados_listaJSON.rds")
 
-# Elimina lista dos paises que tenha falhado em fazer download
-comercioAL[[which(erros == TRUE)]] <- NULL
+# Elimina lista dos paises que tenha falhado em fazer download (elimine '#' da linha abaixo)
+# comercioAL[[which(erros == TRUE)]] <- NULL
+
+sapply(comercioAL, sapply, length)
 
 # Elimina lista "validation"(vazia) das listas e transforma a lita "data" na lista principal
 for (pais in seq_along(comercioAL)) {
-  comercioAL[[pais]]$validation <- NULL
   comercioAL[[pais]] <- comercioAL[[pais]]$data
 }
+
+# Verifica se o loop funcionou
+str(comercioAL, max.level = 1)
+
+# Quatro países foram eliminador por não ter nenhum registros sobre comercio exterior.
+# São eles Cuba, Guiana Francesa, Haiti e Trinidad y Tobago
+
+# O comando precisa ser refeito "individualmente" para os casos abaixo
+comercioAL$`Rep. Dominacana` <- comercioAL$`Rep. Dominacana`$data
+
+comercioAL$Guatemala <- comercioAL$Guatemala$data
+
+comercioAL$Honduras <- comercioAL$Honduras$data
+
+comercioAL$Uruguay <- comercioAL$Uruguay$data
+
+str(comercioAL, max.level = 1)
 
 # Transforma todas as listas num unico data-frame
 comercioAL <- as.data.frame(do.call(rbind, comercioAL))
 
-saveRDS(comercioAL,file = "dados_df.rds")
+# Verifica quais colunas são inuteis (apenas NAs)
+elim <- as.vector(which(sapply(comercioAL, function (x) sum(is.na(x)) == length(x)) | 
+        sapply(comercioAL, function (x) length(levels(x)) <= 1) == T))
+
+# Elimina colunas inuteis
+comercioAL <- comercioAL[ , -elim]
+
+saveRDS(comercioAL,file = "Arquivos RDS/dados_dfJSON.rds")

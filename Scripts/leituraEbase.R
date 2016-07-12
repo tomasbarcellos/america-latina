@@ -1,20 +1,23 @@
-install.packages("dplyr")
-install.packages("ggplot2")
+# Retire o jogo da velha caso não possua os pacoques listados abaixo:
+# install.packages("ggplot2")
+
 library(dplyr)
 library(ggplot2)
 
-rm(list=ls())
-
-export <- readRDS("dados_df.rds")
+precos <- readRDS("precos_commodities.rds")
+export <- readRDS("dados_dfJSON.rds")
 
 # Verifica quais colunas são inuteis (apenas NAs)
 str(export)
-# Elimina colunas inuteis
-export <- export[ , -c(15:21, 25:31, 33:35)]
 # Seleciona apenas dados de exportação
 export <- export %>% filter(Trade.Flow == "Export")
 # Organiza dados por valor decrescente
 export <- export %>% arrange(desc(Trade.Value..US..))
+
+
+ven <- export %>% filter(Reporter == "Venezuela", 
+                         Partner == "World",
+                         Year == 2013)
 
 # Verifica tamanho do objeto
 object.size(export)/10^6 # em Mb
@@ -91,49 +94,26 @@ gg <- ggplot(por_pais_2013, aes(x = Reporter,y =  Valor, fill = Reporter))
 gg + geom_bar(stat = "identity") +  
   geom_text(aes(label=round(Valor/10e6,2)), position= position_dodge(width=0.9), vjust=-.5, color="black") + 
   coord_flip() + 
-  theme(legend.position = "none") +
-  scale_y_continuous(labels = comma)
-
-por_merc_2013 <- export %>% 
-  group_by(Commodity) %>%
-  filter(Partner == "World", Year == 2013) %>%
-  summarise(Valor = sum(Trade.Value..US..)) %>%
-  ungroup() %>%
-  arrange((Valor))
-  
-outras_merc_2013 <- por_merc_2013[1:132, ]
-por_merc_2013 <- por_merc_2013[133:146, ]
-por_merc_2013 <- rbind(data.frame(Commodity = "Outras",
-                                  Valor = sum(outras_merc_2013$Valor)),
-                       por_merc_2013)
-
-por_merc_2013$Commodity <- factor(por_merc_2013$Commodity, ordered = TRUE)
-str(por_merc_2013$Valor)
-mm <- ggplot(por_merc_2013, aes(x = Commodity,y =  Valor, fill = Commodity))
-mm + geom_bar(stat = "identity") +  
-  geom_text(aes(label=round(Valor/10e6,2)), position= position_dodge(width=0.9), vjust=-.5, color="black") + 
-  coord_flip() + 
+  labs(ylab = seq(0,25*10^9, 5*10^9), ggtitle()) + 
   theme(legend.position = "none") +
   scale_y_continuous(labels = comma)
 
 
-br_por_merc_2013 <- export %>% 
-  group_by(Commodity) %>%
-  filter(Partner == "World", Year == 2013, Reporter == "Brazil") %>%
-  summarise(Valor = sum(Trade.Value..US..)) %>%
-  ungroup() %>%
-  arrange((Valor))
 
-br_outras_merc_2013 <- br_por_merc_2013[1:83, ]
-br_por_merc_2013 <- br_por_merc_2013[84:97, ]
-br_por_merc_2013 <- rbind(data.frame(Commodity = "Outras",
-                                  Valor = sum(br_outras_merc_2013$Valor)),
-                       br_por_merc_2013)
-br_por_merc_2013$Commodity <- factor(br_por_merc_2013$Commodity, ordered = TRUE)
-
-bb <- ggplot(br_por_merc_2013, aes(x = Commodity,y =  Valor, fill = Commodity))
-bb + geom_bar(stat = "identity") +  
-  geom_text(aes(label=round(Valor/10e6,2)), position= position_dodge(width=0.9), vjust=-.5, color="black") + 
-  coord_flip() + 
-  theme(legend.position = "none") +
-  scale_y_continuous(labels = comma)
+# # Cria tabela com as 5 mais exportadas e a organiza
+# dez_mais <- por_merc_2015[1:10, ]
+# names(dez_mais)[1] <- "Mercadoria"
+# dez_mais$Mercadoria <- factor(dez_mais$Mercadoria, ordered = T)
+# 
+# # Gráfico demonstrando itens mais exportados
+# g <- ggplot(dez_mais, aes(Mercadoria, Valor))
+# 
+# g + geom_bar(stat = "identity", aes(fill = Mercadoria)) +
+#   scale_fill_brewer(palette = "Reds") +
+#   coord_flip() +
+#   theme(legend.position = "bottom")
+# 
+# gg <- ggplot(data = por_merc_2015[1:5, ], aes(Commodity, Valor))
+# 
+# gg +   
+# stat_summary(data = por_merc_2015[1:5, ],aes(x = Commodity, y = Valor, fill = Commodity), geom = "bar")
