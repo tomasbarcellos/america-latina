@@ -19,8 +19,12 @@ shinyServer(
         group_by(rtTitle) %>% summarise(Valor = sum(TradeValue)) %>% ungroup() %>% arrange(desc(Valor))
       
      ggplot(data = dado[1:input$quant, ], aes(x = rtTitle, y = Valor)) +
-       geom_bar(stat = "identity", fill = colors()[1:input$quant]) +
-       geom_text(aes(label = format(x = round(Valor/10^6, digits = 2), big.mark = ".", small.mark = ","), vjust = -0.5))
+       geom_bar(stat = "identity", fill = colors()[1:inptugit$quant]) +
+       geom_text(aes(label = format(x = round(Valor/10^9, digits = 1), small.mark = "\\,")), vjust = -1.0) +
+       scale_y_continuous(name = "Valor bilhões de US $",limits = c(0, max(dado$Valor)*1.05),
+                          breaks = seq(0, max(dado$Valor), max(dado$Valor)/4)) +
+       scale_x_discrete(name = "País") +
+       labs(title = "Comércio exterior para os países selecionados")
 
     })
     
