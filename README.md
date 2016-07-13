@@ -15,4 +15,4 @@ Projeto para criação de um painel com as informações básicas sobre as socie
 
 2.2) Definição da forma de apresentação das informações
 
-2.3) Construção do Painel --> Script painel.R
+2.3) Construção do Painel --> Scripts server.R e ui.R
