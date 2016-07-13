@@ -13,7 +13,7 @@ shinyUI(fluidPage(
                   min = 2011, max = 2015, value = 2013),
       
       sliderInput("quant", label = "Quantos paises?",
-                  min = 3, max = 10, value = 5),
+                  min = 3, max = 18, value = 5),
       
       selectInput("pais", label = "Deseja obter informações sobre qual pais?", 
                   choices = list("América Latina", "Argentina", "Bolivia", "Brasil", "Chile",
