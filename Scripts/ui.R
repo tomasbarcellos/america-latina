@@ -16,12 +16,10 @@ shinyUI(fluidPage(
                   min = 3, max = 18, value = 5),
       
       selectInput("pais", label = "Deseja obter informações sobre qual pais?", 
-                  choices = list("América Latina", "Argentina", "Bolivia", "Brasil", "Chile",
-                                 "Colombia", "Cuba", "Rep. Dominacana", "Ecuador",
-                                 "El Salvador", "Guiana Francesa", "Guatemala",
-                                 "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico",
-                                 "Nicaragua", "Panama", "Paraguay", "Peru",
-                                 "Trinidad y Tobago", "Uruguay", "Venezuela"), selected = "America Latina"),
+                  choices = list("Argentina", "Bolivia (Plurinational State of)", "Brazil",
+                                 "Chile", "Colombia", "Dominican Rep.", "Ecuador", "El Salvador", "Guatemala",
+                                 "Guinea", "Honduras", "Jamaica", "Mexico", "Nicaragua", "Panama", "Paraguay", 
+                                 "Peru", "Uruguay", "Venezuela"), selected = "Brazil"),
       
       selectInput("parceiro", label = "Escolha o parceiro comercial:", 
                   choices = list("Mundo", "América Latina", "Estados Unidos"), selected = "Mundo"),
@@ -30,7 +28,10 @@ shinyUI(fluidPage(
                   choices = list("Minerais", "Agropecuárias","Industriais"), selected = "Agropecuárias")
     ),    
     mainPanel(
-      plotOutput("graf")
+      plotOutput("graf1"),
+      br(),
+      br(),
+      plotOutput("graf2")
     )
   )
   
