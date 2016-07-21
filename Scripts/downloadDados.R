@@ -190,4 +190,13 @@ elim <- as.vector(which(sapply(comercioAL, function (x) sum(is.na(x)) == length(
 # Elimina colunas inuteis
 comercioAL <- comercioAL[ , -elim]
 
+comercioAL$cmdCode <- as.integer(as.character(comercioAL$cmdCode))
+
+comercioAL$TradeValue <- as.numeric(as.character(comercioAL$TradeValue))
+
+traducao <- read.csv2(file = "Dados/traducao.csv",
+                      stringsAsFactors = F)
+
+comercioAL <- left_join(x = comercioAL, y = traducao, by = "cmdCode")
+
 saveRDS(comercioAL,file = "Arquivos RDS/dados_dfJSON.rds")
