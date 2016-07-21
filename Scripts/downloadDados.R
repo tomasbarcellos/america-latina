@@ -29,6 +29,11 @@ precos <- read_excel(path = paste0("Dados/",arquivo), sheet = 1)
 # Faz alteracoes necessarias nos dados
 precos <- precos[-1, ]
 names(precos)[1] <- "Ano"
+nomes_precos <- names(precos)
+nomes_precos <- gsub(pattern = "WLD", replacement = "", x = nomes_precos)
+names(precos) <- nomes_precos
+precos[, -1] <- sapply(precos[, -1], as.numeric)
+precos <- gather(data = precos, Mercadoria, Preço, -Ano)
 
 # Salva dados como objeto do R
 if (dir.exists("Arquivos RDS") == FALSE) dir.create("Arquivos RDS")
