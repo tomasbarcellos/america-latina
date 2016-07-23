@@ -1,4 +1,10 @@
 # ui.R
+library(shiny)
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
+library(stringr)
+library(plotly)
 
 shinyUI(fluidPage(
   titlePanel("América Latina"),
@@ -61,8 +67,7 @@ shinyUI(fluidPage(
                                         'SOYBEAN_OIL','SOYBEANS','STL_JP_CROLL','STL_JP_HROLL','STL_JP_REBAR','STL_JP_WIROD',
                                         'SUGAR_EU','SUGAR_US','SUGAR_','TEA_AVG','TEA_COLOMBO','TEA_KOLKATA','TEA_MOMBASA','TIN',
                                         'TOBAC_US','TSP','UREA_EE_BULK','WHEAT_CANADI','WHEAT_US_HRW','WHEAT_US_SRW','WOODPULP','ZINC'),
-                         selected = c('IAGRICULTURE','IBEVERAGES','IENERGY', 'IGRAINS',
-                                      'INONFUEL','ITIMBER','IRAW_MATERIAL'))
+                         selected = c('IAGRICULTURE','IBEVERAGES','IENERGY', 'IGRAINS'))
     ),    
     mainPanel(
       downloadLink('download.graf1', "Clique aqui para baixar os dados deste gráfico!"),

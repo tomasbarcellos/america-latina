@@ -1,15 +1,9 @@
 # server.R
-library(shiny)
-library(dplyr)
-library(ggplot2)
-library(stringr)
-library(ggthemes)
-library(plotly)
 
 base <- readRDS("data/dados_dfJSON.rds")
 
 precos <- readRDS("data/precos_commodities.rds")
-
+names(precos)[3] <- 'preco'
 
 shinyServer(
   function(input, output) {
@@ -57,7 +51,7 @@ shinyServer(
         theme_economist(base_size = 15) +
         scale_fill_economist() +
         coord_flip()
-      ggplotly(p = graf.merc)
+      ggplotly(graf.merc)
   
     })
     
@@ -65,8 +59,8 @@ shinyServer(
     output$graf3 <- renderPlotly({
       precos.dim <- precos %>% filter(Mercadoria == input$mercadoria, 
                                       Ano >= input$periodo[1], Ano <= input$periodo[2])
-      graf.precos <- ggplot(precos, aes(x = Ano, y = Preço)) + 
-        geom_jitter(data = precos.dim,
+      graf.precos <- ggplot(precos, aes(x = Ano, y = preco)) + 
+        geom_line(data = precos.dim,
                   aes(col = Mercadoria), alpha = 0.7) +
         theme_stata() +
         scale_fill_continuous()
