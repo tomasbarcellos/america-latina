@@ -23,7 +23,7 @@ shinyServer(
     
     output$graf1 <- renderPlotly({
       tipo <- switch(input$tipo,
-                     'Exportacao' = '[2|3]',
+                     "Exportacao" = '[2|3]',
                      'Importacao' = '[1|4]',
                      'Exportacao e Importacao' = '[1-4]')
       
@@ -32,14 +32,14 @@ shinyServer(
         arrange(desc(Valor))
       
       graf.pais <- ggplot(data = por_pais[1:input$quant, ], aes(x = reorder(rtTitle, Valor), y = Valor)) +
-        geom_bar(stat = 'identity') +
+        geom_bar(stat = 'identity', fill = 'indianred', alpha = 0.5) +
         geom_text(aes(label = format(x = Valor, decimal.mark = ",")),
                   hjust = 5.1, col = 'black', size = 6) +
         guides(fill = 'none') +
-        theme_wsj(base_size = 14) +
+        theme_classic(base_size = 14) +
         theme(axis.text.y = element_text(size = 9, face = 'bold', hjust = 1)) +
-        coord_flip() +
-        labs(x = '', y = "Bilhões de US$", fill = '')
+        labs(x = '', y = "Bilhões de US$", fill = '') #+
+        coord_flip()
       ggplotly(p = graf.pais)
     })
     output$titulo2 <- renderText(paste(input$tipo,"de", input$pais, "\nem", input$ano))
@@ -54,14 +54,14 @@ shinyServer(
         filter(grepl(x = rgCode, tipo), ptTitle == "World", grepl(x = yr, input$ano), rtTitle == input$pais) %>%
         group_by(cmdCode) %>% summarise(Mercadoria = first(cmdDescEPt),
                                          Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
-        arrange(desc(Valor))
+        arrange(desc(Valor)) %>%
+        ungroup() %>% mutate(soma_acu = cumsum(Valor), percentual = soma_acu*100/sum(Valor))
       
-      graf.merc <- ggplot(data = por_merc[1:input$qt_merc, ], aes(x = reorder(Mercadoria, Valor), y = Valor)) +
-        geom_bar(stat = 'identity') +
+      graf.merc <- ggplot(data = por_merc %>% filter(percentual <= input$qt_merc), aes(x = reorder(Mercadoria, Valor), y = Valor)) +
+        geom_bar(stat = 'identity', fill = 'indianred', alpha = 0.5) +
         geom_text(aes(label = format(x = Valor, decimal.mark = ",")),
                   hjust = -4.1, col = 'black', size = 6) +
-        theme_economist(base_size = 15) +
-        scale_fill_economist() +
+        theme_classic(base_size = 15) +
         coord_flip()
       ggplotly(graf.merc)
   
@@ -69,13 +69,13 @@ shinyServer(
     
     output$titulo3 <- renderText(paste("Preços de ",paste(input$mercadoria, collapse = " e "), sep = ""))
     output$graf3 <- renderPlotly({
-      precos.dim <- precos %>% filter(grepl(x = Mercadoria, input$mercadoria), 
+      precos.dim <- precos %>% filter(Mercadoria %in% input$mercadoria, 
                                       Ano >= input$periodo[1], Ano <= input$periodo[2])
       graf.precos <- ggplot(precos.dim, aes(x = Ano, y = preco)) + 
         geom_line(data = precos.dim,
                   aes(col = Mercadoria), alpha = 0.7) +
-        theme_stata() +
-        scale_fill_continuous()
+        theme_classic() +
+        scale_fill_discrete()
       
       ggplotly(graf.precos)
     })
@@ -84,7 +84,7 @@ shinyServer(
       var = switch (input$capitais,
         "Entrada líquida de capitais autonomos" = "(1) Net inflows of autonomous capital",
         "Entrada líquida de capitais não-autonomos" = "(2) Net inflows of non-autonomous capital",
-        "Total da entrada líquida de capital" = "(3) Total net inflows of capital = (1) + (2)",
+        "Total da entrada liquida de capital" = "(3) Total net inflows of capital = (1) + (2)",
         "Balança de rendas" = "(4) Income balance",
         "Transferências líquidas" = "(5) Net resource transfers = (3) + (4)"
       )
@@ -92,6 +92,7 @@ shinyServer(
                               aes(x = ano , y = valor, col = reorder(pais, valor))) +
         geom_jitter() + geom_smooth(se = FALSE) +
         theme_classic() +
+        scale_color_discrete() +
         theme(legend.position = "bottom")
       ggplotly(graf.capitais)
     })
