@@ -7,16 +7,16 @@ library(stringr)
 library(plotly)
 
 shinyUI(fluidPage(
-  titlePanel("América Latina"),
+  titlePanel("America Latina"),
   fluidRow(
     column(12,
-           h4("Você está participando da criação de um painel com as informações
-              básicas sobre a inserção das sociedades latino-americanas no mercado mundal, 
-              visando tornar seu acompanhamento mais acessível ao público brasileiro."),
-           h4("Aqui será possível acompanhar a evolução das estatísticas sobre comércio exterior, 
-              preços das principais merdorias e fluxo de capitais.", align = "justify"))
+           h4("Voce esta participando da criacao de um painel com as informacoes
+              basicas sobre a insercao das sociedades latino-americanas no mercado mundal, 
+              visando tornar seu acompanhamento mais acessivel ao publico brasileiro."),
+           h4("Aqui sera possivel acompanhar a evolucao das estatisticas sobre comercio exterior, 
+              precos das principais merdorias e fluxo de capitais.", align = "justify"))
            ),
-  # Linha para gráfico 1
+  # Linha para grafico 1
   fluidRow(
     
     column(3,
@@ -34,13 +34,13 @@ shinyUI(fluidPage(
                        min = 3, max = 18, value = 5)),
     
     column(9,
-           downloadLink('download.graf1', "Clique aqui para baixar os dados deste gráfico!"),
+           downloadLink('download.graf1', "Clique aqui para baixar os dados deste grafico!"),
            h3(textOutput("titulo1")),
            plotlyOutput("graf1"),
            br(),
            br())
   ),
-  # Linha para gráfico 2
+  # Linha para grafico 2
   fluidRow(
     
     column(3,
@@ -48,30 +48,30 @@ shinyUI(fluidPage(
            br(),
            br(),
            br(),
-           selectInput("pais", label = "Deseja obter informações sobre qual pais?", 
+           selectInput("pais", label = "Deseja obter informacoes sobre qual pais?", 
                        choices = list("Argentina", "Bolivia (Plurinational State of)", "Brazil",
                                       "Chile", "Colombia", "Dominican Rep.", "Ecuador", "El Salvador", "Guatemala",
                                       "Guinea", "Honduras", "Jamaica", "Mexico", "Nicaragua", "Panama", "Paraguay", 
                                       "Peru", "Uruguay", "Venezuela"), selected = "Brazil"),
            
            sliderInput("qt_merc", label = "Mostrar mercadorias que acumulem quantos por cento?",
-                       min = 30, max = 100, value = 50),
+                       min = 40, max = 85, value = 50),
            
-           selectInput("parceiro", label = list(p("Escolha o parceiro comercial:"),helpText("Não está funcionando")),
-                       choices = list("Mundo", "América Latina", "Estados Unidos"), selected = "Mundo")),
+           selectInput("parceiro", label = list(p("Escolha o parceiro comercial:"),helpText("Nao esta funcionando")),
+                       choices = list("Mundo", "America Latina", "Estados Unidos"), selected = "Mundo")),
     
     column(9,
-           downloadLink('download.graf2', "Clique aqui para baixar os dados deste gráfico!"),
+           downloadLink('download.graf2', "Clique aqui para baixar os dados deste grafico!"),
            h3(textOutput("titulo2")),
            plotlyOutput("graf2"),
            br())
   ),
-  # Linha para gráfico 3
+  # Linha para grafico 3
   fluidRow(
     
     column(3,
-           selectInput("grupo.mercadoria", label = list("Escolha um grupo de mercadorias",helpText("Não está funcionando")), 
-                       choices = list("Minerais", "Agropecuárias","Industriais"), selected = "Agropecuárias"),
+           selectInput("grupo.mercadoria", label = list("Escolha um grupo de mercadorias",helpText("Nao esta funcionando")), 
+                       choices = list("Minerais", "Agropecuarias","Industriais"), selected = "Agropecuarias"),
            checkboxGroupInput("mercadoria", label = "Escolha as mercadorias", 
                               choices = list('CRUDE_WTI', 'GOLD','GRNUT_OIL','IAGRICULTURE','IBEVERAGES',
                                              'IENERGY','IFATS_OILS','IFERTILIZERS','IFOOD','IGRAINS','IMETMIN','INONFUEL',
@@ -79,29 +79,28 @@ shinyUI(fluidPage(
                               selected = c('IAGRICULTURE','IBEVERAGES','IENERGY', 'IGRAINS'))),
     
     column(9,
-           downloadLink('download.graf3', "Clique aqui para baixar os dados deste gráfico!"),
+           downloadLink('download.graf3', "Clique aqui para baixar os dados deste grafico!"),
            h3(textOutput("titulo3")),
-           sliderInput("periodo", label = "Visualizar os preços entre:",
+           sliderInput("periodo", label = "Visualizar os precos entre:",
                        min = 1960, max = 2015, value = c(1995,2015)),
            plotlyOutput("graf3"),
            br())
   ),
-  # Linha para gráfico 4
+  # Linha para grafico 4
   fluidRow(
     
     column(3,
+           selectInput("capitais", label = "Escolha  a variavel sobre balanca de capitais que deseja conhecer", 
+                       choices = list("Entrada liquida de capitais autonomos", "Entrada liquida de capitais nao-autonomos",
+                                      "Total da entrada liquida de capital", "Balanca de rendas", 
+                                      "Transferencias liquidas"), selected = "Total da entrada liquida de capital"),
            br(),
            br(),
-           br(),
-           br(),
-           br(),
-           selectInput("capitais", label = "Escolha  a variável sobre balança de capitais que deseja conhecer", 
-                       choices = list("Entrada líquida de capitais autonomos", "Entrada líquida de capitais não-autonomos",
-                                      "Total da entrada liquida de capital", "Balança de rendas", 
-                                      "Transferências líquidas"), selected = "Total da entrada liquida de capital")),
+           sliderInput("paises.capitais", label = "Numero de paises",
+                       min = 1, max = 18, value = c(1,4))),
     
     column(9,
-           h3("Série histórica das balanças de capitais"),
+           h3("Serie historica das balancas de capitais"),
            plotlyOutput("graf4"))
   )
     ))

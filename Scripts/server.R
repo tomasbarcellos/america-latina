@@ -1,5 +1,4 @@
 # server.R
-
 base <- readRDS("data/dados_dfJSON.rds")
 precos <- readRDS("data/precos_commodities.rds")
 capitais <- readRDS("data/capitais_AL.rds")
@@ -11,7 +10,7 @@ tabela_por_pais <- base %>% filter(ptTitle == "World") %>%
 tabela_por_merc <- base %>% 
   filter(ptTitle == "World") %>%
   group_by(cmdCode, rgDesc, yr, rtTitle) %>% summarise(Mercadoria = first(cmdDescEPt),
-                                  Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
+                                                       Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
   arrange(desc(Valor))
 
 
@@ -19,7 +18,7 @@ names(precos)[3] <- 'preco'
 
 shinyServer(
   function(input, output) {
-    output$titulo1 <- renderText(paste("Comércio exterior para os países selecionados\n", input$tipo))
+    output$titulo1 <- renderText(paste("Comercio exterior para os paises selecionados\n", input$tipo))
     
     output$graf1 <- renderPlotly({
       tipo <- switch(input$tipo,
@@ -38,8 +37,8 @@ shinyServer(
         guides(fill = 'none') +
         theme_classic(base_size = 14) +
         theme(axis.text.y = element_text(size = 9, face = 'bold', hjust = 1)) +
-        labs(x = '', y = "Bilhões de US$", fill = '') #+
-        coord_flip()
+        labs(x = '', y = "Bilhoes de US$", fill = '') #+
+      coord_flip()
       ggplotly(p = graf.pais)
     })
     output$titulo2 <- renderText(paste(input$tipo,"de", input$pais, "\nem", input$ano))
@@ -53,7 +52,7 @@ shinyServer(
       por_merc <- base %>% 
         filter(grepl(x = rgCode, tipo), ptTitle == "World", grepl(x = yr, input$ano), rtTitle == input$pais) %>%
         group_by(cmdCode) %>% summarise(Mercadoria = first(cmdDescEPt),
-                                         Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
+                                        Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
         arrange(desc(Valor)) %>%
         ungroup() %>% mutate(soma_acu = cumsum(Valor), percentual = soma_acu*100/sum(Valor))
       
@@ -62,12 +61,13 @@ shinyServer(
         geom_text(aes(label = format(x = Valor, decimal.mark = ",")),
                   hjust = -4.1, col = 'black', size = 6) +
         theme_classic(base_size = 15) +
+        labs(x = "", y = "Volume de comercio, em bilhoes de US$") +
         coord_flip()
       ggplotly(graf.merc)
-  
+      
     })
     
-    output$titulo3 <- renderText(paste("Preços de ",paste(input$mercadoria, collapse = " e "), sep = ""))
+    output$titulo3 <- renderText(paste("Precos de ",paste(input$mercadoria, collapse = " e "), sep = ""))
     output$graf3 <- renderPlotly({
       precos.dim <- precos %>% filter(Mercadoria %in% input$mercadoria, 
                                       Ano >= input$periodo[1], Ano <= input$periodo[2])
@@ -82,13 +82,17 @@ shinyServer(
     
     output$graf4 <- renderPlotly({
       var = switch (input$capitais,
-        "Entrada líquida de capitais autonomos" = "(1) Net inflows of autonomous capital",
-        "Entrada líquida de capitais não-autonomos" = "(2) Net inflows of non-autonomous capital",
-        "Total da entrada liquida de capital" = "(3) Total net inflows of capital = (1) + (2)",
-        "Balança de rendas" = "(4) Income balance",
-        "Transferências líquidas" = "(5) Net resource transfers = (3) + (4)"
+                    "Entrada liquida de capitais autonomos" = "(1) Net inflows of autonomous capital",
+                    "Entrada liquida de capitais nao-autonomos" = "(2) Net inflows of non-autonomous capital",
+                    "Total da entrada liquida de capital" = "(3) Total net inflows of capital = (1) + (2)",
+                    "Balanca de rendas" = "(4) Income balance",
+                    "Transferencias liquidas" = "(5) Net resource transfers = (3) + (4)"
       )
-      graf.capitais <- ggplot(data = capitais %>% filter(variavel == var),
+      seletor <- capitais %>% filter(ano == max(ano)) %>% arrange(desc(valor)) %>% select(pais) %>% unique()
+      paises.capitais <- input$paises.capitais[1]:input$paises.capitais[2]      
+
+      graf.capitais <- ggplot(data = capitais %>% filter(variavel == var,
+                                                         pais %in% seletor$pais[paises.capitais]),
                               aes(x = ano , y = valor, col = reorder(pais, valor))) +
         geom_jitter() + geom_smooth(se = FALSE) +
         theme_classic() +
@@ -98,13 +102,13 @@ shinyServer(
     })
     
     output$download.graf1 <- downloadHandler(
-       filename = function() {
-         paste('data-', Sys.Date(), '.csv', sep='')
-       },
-       content = function(con) {
-         write.csv(tabela_por_pais, con)
-       }
-      )
+      filename = function() {
+        paste('data-', Sys.Date(), '.csv', sep='')
+      },
+      content = function(con) {
+        write.csv(tabela_por_pais, con)
+      }
+    )
     output$download.graf2 <- downloadHandler(
       filename = function() {
         paste('data-', Sys.Date(), '.csv', sep='')
