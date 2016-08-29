@@ -1,4 +1,4 @@
-# Retire o jogo da velha caso não possua os pacoques listados abaixo:
+# Retire o jogo da velha caso n?o possua os pacoques listados abaixo:
 # install.packages("dplyr")
 # install.packages("readxl")
 # install.packages("rjson")
@@ -42,13 +42,13 @@ saveRDS(object = precos, file = "Arquivos RDS/precos_commodities.rds")
 ################################
 ####   Download de dados    ####
 ####    do UN ComTrade:     ####
-#### exportações dos paises ####
+#### exporta??es dos paises ####
 ####   da America Latina    ####
 ################################
 
 # Download de dados UNComTrade com API
 
-# Define função para download de dados baseado no API da UnComTrade
+# Define fun??o para download de dados baseado no API da UnComTrade
 get.Comtrade <- function(r, # Area do relatorio. Um numero por pais
                          url = "http://comtrade.un.org/api/get?",
                          maxrec = 250000, # Maximo de observacoes
@@ -99,9 +99,9 @@ get.Comtrade <- function(r, # Area do relatorio. Um numero por pais
       return(list(validation=validation,data =ndata))
     }
   }
-} # Fim da função
+} # Fim da fun??o
 
-# Define data frame com codigo e nome dos países da América Latina
+# Define data frame com codigo e nome dos pa?ses da Am?rica Latina
 am_lat <- data.frame(codigo_UNComTrade = c(32, 68, 76, 152, 170, 192, 214, 218,
                                            222, 254, 320, 324, 332, 340, 388, 484,
                                            558, 591, 600, 604, 780, 858, 862),
@@ -116,26 +116,21 @@ am_lat <- data.frame(codigo_UNComTrade = c(32, 68, 76, 152, 170, 192, 214, 218,
 # Cria lista para armazenar tabelas
 comercioAL <- vector("list", nrow(am_lat))
 
-# Nomeia cada item da lista com o nome do país para os quais armazenará os dados
+# Nomeia cada item da lista com o nome do pa?s para os quais armazenar? os dados
 names(comercioAL) <- am_lat$pais
 
-# Loop que tenta fazer o download dos dados de exportação de cada país
+# Loop que tenta fazer o download dos dados de exporta??o de cada pa?s
 for (pais in 1:nrow(am_lat)) {
   comercioAL[[pais]] <- try(get.Comtrade(am_lat[pais,1]))
 } # Primeira rodada, erros de conexao sao comuns
 
-# Cria vetor que armazenará os erros da última operação
-erros <- vector(length = nrow(am_lat))
-
-# Loop que atribui a cada elemento do vetor a ocorrencia de erro no download
-for (i in seq_along(erros)) {
-  erros[i] <- class(comercioAL[[i]]) == "try-error"
-}
+# Cria vetor que armazenar? os erros da ?ltima opera??o
+erros <- sapply(comercioAL, function (x) class(x) == "try-error")
 
 # Imprime a quatidade de erros occoridos, caso hajam
 warning(sum(erros), if (sum(erros) == 1) {" erro encontrado!"} else {" erros encontrados!"},
     if(sum(erros) >0 ) {
-      " Rode o código abaixo para realizar nova tentativa de download para aqueles países em que ouve falha"})
+      " Rode o c?digo abaixo para realizar nova tentativa de download para aqueles pa?ses em que ouve falha"})
 
 # Loop que dura enquanto persistirem erros na tentativa de download
 while (sum(erros) > 0){
@@ -152,7 +147,7 @@ while (sum(erros) > 0){
             " Realizarei uma nova tentativa"})
 }
 
-# O código abaixo deve ser rodado caso ainda tenham persistido erros (elimine '#' da linha abaixo)
+# O c?digo abaixo deve ser rodado caso ainda tenham persistido erros (elimine '#' da linha abaixo)
 # comercioAL[[which(erros == TRUE)]] <- (get.Comtrade(am_lat[which(erros == TRUE),1]))
 
 # Salva os dados como objeto(lista) do R
@@ -171,8 +166,8 @@ for (pais in seq_along(comercioAL)) {
 # Verifica se o loop funcionou
 str(comercioAL, max.level = 1)
 
-# Quatro países foram eliminador por não ter nenhum registros sobre comercio exterior.
-# São eles Cuba, Guiana Francesa, Haiti e Trinidad y Tobago
+# Quatro pa?ses foram eliminador por n?o ter nenhum registros sobre comercio exterior.
+# S?o eles Cuba, Guiana Francesa, Haiti e Trinidad y Tobago
 
 # O comando precisa ser refeito "individualmente" para os casos abaixo
 comercioAL$`Rep. Dominacana` <- comercioAL$`Rep. Dominacana`$data
@@ -188,7 +183,7 @@ str(comercioAL, max.level = 1)
 # Transforma todas as listas num unico data-frame
 comercioAL <- as.data.frame(do.call(rbind, comercioAL))
 
-# Verifica quais colunas são inuteis (apenas NAs)
+# Verifica quais colunas s?o inuteis (apenas NAs)
 elim <- as.vector(which(sapply(comercioAL, function (x) sum(is.na(x)) == length(x)) | 
         sapply(comercioAL, function (x) length(levels(x)) <= 1) == T))
 
@@ -204,4 +199,64 @@ traducao <- read.csv2(file = "Dados/traducao.csv",
 
 comercioAL <- left_join(x = comercioAL, y = traducao, by = "cmdCode")
 
-saveRDS(comercioAL,file = "Arquivos RDS/dados_dfJSON.rds")
+saveRDS(comercioAL,file = "Arquivos RDS/dados_dfJSON.rds", version = 2)
+
+###########################
+#### Download de dados ####
+####     da CEPAL:     ####
+####    balança de     ####
+####     capitais      ####
+###########################
+
+# # Define função para download de dados baseado no API da UnComTrade
+# get.CEPAL <- function(IdIndicador, dimensao1, desagregador1,
+#                       dimensao2 = "", desagregador2 = "",
+#                       dimensao3 = "", desagregador3 = "", lingua = "spanish") {
+#   string<- paste0("http://interwp.cepal.org/sisgen/ws/cepalstat/getDataWithoutMeta.asp?",
+#                   "IdIndicator=", IdIndicador)
+#   dados <- read.table(string, stringsAsFactors = FALSE, sep = "`")
+#   valores <- str_extract_all(string = dados, pattern = "=[-]?[0-9]*[.]?[0-9]*")[[1]]
+#   #  valores <- valores[-c(1,2,3, length(valores)-2, length(valores)-1, length(valores))]
+#   #  indicador <- valores[1]
+#   #  valores <- valores[-1]
+#   #  valores <- as.data.frame(matrix(valores, ncol = 9, byrow = TRUE))
+#   #  names(valores) <- c("indicador1", "desagregador1", "indicador2", "desagregador2", "indicador3", "desagregador3", "IdFonte", "lixo", "valor")
+#   return(valores)
+# } # Fim da função (incompleto)
+# 
+# teste <- get.CEPAL(IdIndicador = 1629)
+
+capitais <- read.table("cepal.csv", stringsAsFactors = FALSE)
+capitais <- capitais[, c(2,4,6,8,10,12,14)]
+names(capitais) <- c("pais_CEPAL", "variavel_CEPAL", "ano_CEPAL", "fonte", "nota", "iso3", "valor")
+saveRDS(capitais, "capitais_todos.rds")
+
+am_lat2 <- data.frame(pais_CEPAL = c(216, 221, 222, 224, 225, 249, 228, 229,
+                                           230, 43448, 235, 237, 238, 239, 249, 233,
+                                           240, 241, 242, 244, 256, 258, 259),
+                     pais = c("Argentina", "Bolivia", "Brasil", "Chile",
+                              "Colombia", "Cuba", "Rep. Dominacana", "Ecuador",
+                              "El Salvador", "Guiana Francesa", "Guatemala",
+                              "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico",
+                              "Nicaragua", "Panama", "Paraguay", "Peru",
+                              "Trinidad y Tobago", "Uruguay", "Venezuela"),
+                     stringsAsFactors = FALSE)
+
+capitais.AL <-  capitais %>% filter(capitais$pais_CEPAL %in% am_lat2$pais_CEPAL)
+rm(capitais)
+capitais.AL <- left_join(x = capitais.AL, y = am_lat2, by = "pais_CEPAL")
+rm(am_lat2)
+
+anos <- read.table('anos_CEPAL.csv', stringsAsFactors = FALSE)
+anos <- anos[, c(2,4)]
+names(anos) <- c("ano", "ano_CEPAL")
+capitais.AL <- left_join(x = capitais.AL, y = anos, by = "ano_CEPAL")
+rm(anos)
+
+variavel <- read.table('variavel_CEPAL.csv', stringsAsFactors = FALSE)
+variavel <- variavel[, c(2,4)]
+names(variavel) <- c("variavel", "variavel_CEPAL")
+capitais.AL <- left_join(x = capitais.AL, y = variavel, by = "variavel_CEPAL")
+rm(variavel)
+
+saveRDS(capitais.AL, "capitais_AL.rds")
