@@ -18,6 +18,7 @@ names(precos)[3] <- 'preco'
 
 shinyServer(
   function(input, output) {
+
     output$titulo1 <- renderText(paste("Comercio exterior para os paises selecionados\n", input$tipo))
     
     output$graf1 <- renderPlotly({
@@ -31,11 +32,11 @@ shinyServer(
         arrange(desc(Valor))
       
       graf.pais <- ggplot(data = por_pais[1:input$quant, ], aes(x = reorder(rtTitle, Valor), y = Valor)) +
-        geom_bar(stat = 'identity', fill = 'indianred', alpha = 0.5) +
+        geom_bar(stat = 'identity', fill = 'indianred', alpha = 0.9) +
         geom_text(aes(label = format(x = Valor, decimal.mark = ",")),
                   hjust = 5.1, col = 'black', size = 6) +
         guides(fill = 'none') +
-        theme_classic(base_size = 14) +
+        theme_bw(base_size = 14) +
         theme(axis.text.y = element_text(size = 9, face = 'bold', hjust = 1)) +
         labs(x = '', y = "Bilhoes de US$", fill = '') #+
       coord_flip()
@@ -57,10 +58,10 @@ shinyServer(
         ungroup() %>% mutate(soma_acu = cumsum(Valor), percentual = soma_acu*100/sum(Valor))
       
       graf.merc <- ggplot(data = por_merc %>% filter(percentual <= input$qt_merc), aes(x = reorder(Mercadoria, Valor), y = Valor)) +
-        geom_bar(stat = 'identity', fill = 'indianred', alpha = 0.5) +
+        geom_bar(stat = 'identity', fill = 'indianred', alpha = 0.9) +
         geom_text(aes(label = format(x = Valor, decimal.mark = ",")),
                   hjust = -4.1, col = 'black', size = 6) +
-        theme_classic(base_size = 15) +
+        theme_bw(base_size = 15) +
         labs(x = "", y = "Volume de comercio, em bilhoes de US$") +
         coord_flip()
       ggplotly(graf.merc)
@@ -73,8 +74,8 @@ shinyServer(
                                       Ano >= input$periodo[1], Ano <= input$periodo[2])
       graf.precos <- ggplot(precos.dim, aes(x = Ano, y = preco)) + 
         geom_line(data = precos.dim,
-                  aes(col = Mercadoria), alpha = 0.7) +
-        theme_classic() +
+                  aes(col = Mercadoria), alpha = 0.9) +
+        theme_bw() +
         scale_fill_discrete()
       
       ggplotly(graf.precos)
@@ -90,17 +91,17 @@ shinyServer(
       )
       seletor <- capitais %>% filter(ano == max(ano)) %>% arrange(desc(valor)) %>% select(pais) %>% unique()
       paises.capitais <- input$paises.capitais[1]:input$paises.capitais[2]      
-
+      
       graf.capitais <- ggplot(data = capitais %>% filter(variavel == var,
                                                          pais %in% seletor$pais[paises.capitais]),
                               aes(x = ano , y = valor, col = reorder(pais, valor))) +
-        geom_jitter() + geom_smooth(se = FALSE) +
-        theme_classic() +
+        geom_point() + geom_smooth(alpha = 0.7, se = FALSE) +
+        theme_bw() +
         scale_color_discrete() +
         theme(legend.position = "bottom")
       ggplotly(graf.capitais)
     })
-    
+     
     output$download.graf1 <- downloadHandler(
       filename = function() {
         paste('data-', Sys.Date(), '.csv', sep='')
