@@ -2,6 +2,7 @@
 base <- readRDS("dados/dados_dfJSON.rds")
 precos <- readRDS("dados/precos_commodities.rds")
 capitais <- readRDS("dados/capitais_AL.rds")
+desemprego <- read_feather('dados/desemprego.feather')
 
 tabela_por_pais <- base %>% filter(ptTitle == "World") %>%
   group_by(rtTitle, rgDesc, yr) %>% summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>% ungroup() %>%

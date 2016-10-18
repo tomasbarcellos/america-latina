@@ -5,6 +5,7 @@ library(ggplot2)
 library(ggthemes)
 library(stringr)
 library(plotly)
+library(feather)
 
 shinyUI(fluidPage(
   tags$div(align = "center",
@@ -143,6 +144,7 @@ shinyUI(fluidPage(
   ),
   
   conditionalPanel(condition = "input.grupo==2",
+                   
                    tabsetPanel(
                      tabPanel("Desemprego", value = 1),
                      tabPanel("Movimento sindical", value = 2),
@@ -154,11 +156,14 @@ shinyUI(fluidPage(
                                     fluidRow(
                                       br(),
                                       br(),
-                                      sliderInput("periodo.desemprego", label = "Período",
-                                                  min = 2005, max = 2015, value = c(2010,2015)),
+                                      tags$div(
+                                        align = "center",
+                                        h3("Evolução do desemprego"),
+                                        sliderInput("periodo.desemprego", label = "Período",
+                                                    min = 2005, max = 2015, value = c(2010,2015))#,
+                                        # plotlyOutput("graf.desemprego"))
+                                      )
                                       
-                                      h3("Evolução do desemprego") #,
-                                      # plotlyOutput("graf.desemprego"))
                                     )
                    )
   ),
