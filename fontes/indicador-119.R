@@ -43,12 +43,12 @@ save(list = ls(), file = paste0("historico/CEPAL-indicador-119-extracao-", Sys.D
 tabela <- data.frame(genero, pais, escolaridade, ano, valor)
 
 if(nrow(tabela) != n_dados) {
-  stop('numero de linha não é o mesmo que o volume de dados informado pela CEPAL')
+  stop('numero de linha nÃ£o Ã© o mesmo que o volume de dados informado pela CEPAL')
 }
 
 write_feather(tabela, "shiny/dados/desemprego.feather")
 
-### Dicionário ###
+### Dicion?rio ###
 
 # Download das dimensoes do inddicador 119
 
@@ -82,7 +82,7 @@ id_dimensoes <- c(rep(x = c(id_dimensoes[1]), times = netos[1]),
                   rep(x = c(id_dimensoes[4]), times = netos[4]))
 
 if (!(length(nomes_dimensoes) == length(id_dimensoes) | length(nomes_dimensoes) == sum(netos))) {
-  stop("Há algum erro no tamanho dos vetores. Reveja o código por favor.")
+  stop("HÃ¡ algum erro no tamanho dos vetores. Reveja o cÃ³digo por favor.")
 }
 
 dicionario_119 <- data.frame(nomes_dimensoes, id_dimensoes, nome_desagregacao,
@@ -90,5 +90,5 @@ dicionario_119 <- data.frame(nomes_dimensoes, id_dimensoes, nome_desagregacao,
 
 saveRDS(dicionario_119, "dados/dicionario_119.RDS")
 
-### Colar dadaos ao dicionário ###
+### Colar dadaos ao dicion?rio ###
 
