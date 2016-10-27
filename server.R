@@ -102,6 +102,30 @@ shinyServer(
         theme(legend.position = "bottom")
       ggplotly(graf.capitais)
     })
+    
+    output$graf.desemprego <- renderPlotly({
+      switch(input$periodo.desemprego,
+             '29175',
+             '29176',
+             '29177',
+             '29178',
+             '29179',
+             '29180',
+             '29181',
+             '29182',
+             '29183',
+             '29184',
+             '29185')
+      
+      dado <- desemprego %>% filter(genero == input$genero.desemprego,
+                                    ano %in% input$periodo.desemprego)
+      graf.des <- ggplot(dado, aes(x = pais, y = valor, fill = ano)) +
+        geom_bar(stat = "identity", position = "dodge") +
+        theme_bw()
+      
+      ggplotly(graf.des)
+    })
+    
      
     output$download.graf1 <- downloadHandler(
       filename = function() {

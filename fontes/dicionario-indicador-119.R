@@ -1,4 +1,5 @@
 # Download das dimensoes do inddicador 119
+library(rvest)
 
 url <- "http://interwp.cepal.org/sisgen/ws/cepalstat/getDimensions.asp?idIndicator=119?&language=spanish"
 pagina <-  read_xml(url)

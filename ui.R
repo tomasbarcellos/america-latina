@@ -160,8 +160,12 @@ shinyUI(fluidPage(
                                         align = "center",
                                         h3("Evolução do desemprego"),
                                         sliderInput("periodo.desemprego", label = "Período",
-                                                    min = 2005, max = 2015, value = c(2010,2015))#,
-                                        # plotlyOutput("graf.desemprego"))
+                                                    min = 2005, max = 2015, value = c(2010,2015)),
+                                        selectInput("genero.desemprego", "Gênero",
+                                                    choices = list("Ambos" = 146,
+                                                                   "Masculino" = 265,
+                                                                   "Feminino" = 266)),
+                                        plotlyOutput("graf.desemprego")
                                       )
                                       
                                     )
