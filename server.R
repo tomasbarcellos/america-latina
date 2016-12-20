@@ -3,6 +3,7 @@ base <- readRDS("dados/dados_dfJSON.rds")
 precos <- readRDS("dados/precos_commodities.rds")
 capitais <- readRDS("dados/capitais_AL.rds")
 desemprego <- read_feather('dados/desemprego.feather')
+greves <- readRDS('dados/greves.RDS')
 
 tabela_por_pais <- base %>% filter(ptTitle == "World") %>%
   group_by(rtTitle, rgDesc, yr) %>% summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>% ungroup() %>%
@@ -14,12 +15,12 @@ tabela_por_merc <- base %>%
                                                        Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
   arrange(desc(Valor))
 
-
 names(precos)[3] <- 'preco'
 
 shinyServer(
   function(input, output) {
-
+    
+    # Comércio exterior por país
     output$titulo1 <- renderText(paste("Comercio exterior para os paises selecionados\n", input$tipo))
     
     output$graf1 <- renderPlotly({
@@ -43,6 +44,8 @@ shinyServer(
       coord_flip()
       ggplotly(p = graf.pais)
     })
+    
+    # Balança comercial detalhada
     output$titulo2 <- renderText(paste(input$tipo,"de", input$pais, "\nem", input$ano))
     
     output$graf2 <- renderPlotly({
@@ -69,6 +72,7 @@ shinyServer(
       
     })
     
+    # Preços das principais mercadorias
     output$titulo3 <- renderText(paste("Precos de ",paste(input$mercadoria, collapse = " e "), sep = ""))
     output$graf3 <- renderPlotly({
       precos.dim <- precos %>% filter(Mercadoria %in% input$mercadoria, 
@@ -82,6 +86,7 @@ shinyServer(
       ggplotly(graf.precos)
     })
     
+    # Balança de capitais
     output$graf4 <- renderPlotly({
       var = switch (input$capitais,
                     "Entrada liquida de capitais autonomos" = "(1) Net inflows of autonomous capital",
@@ -104,18 +109,18 @@ shinyServer(
     })
     
     output$graf.desemprego <- renderPlotly({
-      switch(input$periodo.desemprego,
-             '29175',
-             '29176',
-             '29177',
-             '29178',
-             '29179',
-             '29180',
-             '29181',
-             '29182',
-             '29183',
-             '29184',
-             '29185')
+      switch(as.character(input$periodo.desemprego),
+             '2005' = '29175',
+             '2006' = '29176',
+             '2007' = '29177',
+             '2008' = '29178',
+             '2009' = '29179',
+             '2010' = '29180',
+             '2011' = '29181',
+             '2012' = '29182',
+             '2013' = '29183',
+             '2014' = '29184',
+             '2015' = '29185')
       
       dado <- desemprego %>% filter(genero == input$genero.desemprego,
                                     ano %in% input$periodo.desemprego)
@@ -126,7 +131,23 @@ shinyServer(
       ggplotly(graf.des)
     })
     
-     
+    # Gráfico de greves
+    output$graf.graves <- renderPlotly({
+      dado_greve <- greves %>%
+        filter(indicator.label == input$greve.indicador) %>%
+        group_by(ref_area.label, time) %>%
+        summarise(Pais = first(ref_area.label),
+                  ano = first(time),
+                  dado = sum(obs_value))
+      
+      graf.greve <- ggplot(dado_greve,
+                           aes(ano, dado, color = Pais)) +
+        geom_line() + 
+        theme_bw()
+      ggplotly(graf.greve)
+    })
+    
+    # Botões para download dos dados dos gráficos 
     output$download.graf1 <- downloadHandler(
       filename = function() {
         paste('data-', Sys.Date(), '.csv', sep='')

@@ -1,10 +1,11 @@
-library(xml2)
+library(rvest)
 library(feather)
 
 serie <- "http://interwp.cepal.org/sisgen/ws/cepalstat/getDataWithoutMeta.asp?IdIndicator=119"
-pagina <-  read_xml(serie)
+pagina <- read_xml(serie)
 
-id <- pagina %>% xml_find_all("//datos") %>% xml_attr('idIndicator')
+id <- pagina %>%
+  xml_find_all("//datos") %>% xml_attr('idIndicator')
 
 nome <- pagina %>% xml_find_all("//datos") %>% xml_attr('indicador')
 
@@ -40,13 +41,14 @@ tempo <- pagina %>% xml_find_all("//info") %>% xml_attr('tiempoProceso') %>% as.
 
 save(list = ls(), file = paste0("historico/CEPAL-indicador-119-extracao-", Sys.Date(), ".RDA"))
 
-tabela <- data.frame(genero, pais, escolaridade, ano, valor)
+tabela <- data.frame(genero, pais, escolaridade, ano, valor,
+                     stringsAsFactors = FALSE)
 
 if(nrow(tabela) != n_dados) {
   stop('numero de linha não é o mesmo que o volume de dados informado pela CEPAL')
 }
 
-write_feather(tabela, "shiny/dados/desemprego.feather")
+write_feather(tabela, "dados/desemprego.feather")
 
 ### Dicion?rio ###
 

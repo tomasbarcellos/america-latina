@@ -1,6 +1,7 @@
 # ui.R
 library(shiny)
 library(dplyr)
+library(tidyr)
 library(ggplot2)
 library(ggthemes)
 library(stringr)
@@ -27,6 +28,7 @@ shinyUI(fluidPage(
     tabPanel("Mundo do trabalho", value = 2),
     id = "grupo", selected = 1),
   
+  # Início da aba 1 - Mercado Mundial
   conditionalPanel(condition = "input.grupo==1",
                    
                    tabsetPanel(
@@ -143,6 +145,7 @@ shinyUI(fluidPage(
                    )
   ),
   
+  # Início da aba 2 - Trabalho
   conditionalPanel(condition = "input.grupo==2",
                    
                    tabsetPanel(
@@ -167,7 +170,24 @@ shinyUI(fluidPage(
                                                                    "Feminino" = 266)),
                                         plotlyOutput("graf.desemprego")
                                       )
-                                      
+                                    )
+                   ),
+                   
+                   conditionalPanel(condition = "input.tab2selected==2",
+                                    
+                                    fluidRow(
+                                      br(),
+                                      br(),
+                                      tags$div(
+                                        align = "center",
+                                        h3("Nº de greves por pais"),
+                                        selectInput("greve.indicador", "Indicador de greves",
+                                                    choices = list(`Greves` = "Number of strikes and lockouts by economic activity null",
+                                                                   `Dias nao trabalhados (em razao de greves)` = "Days not worked due to strikes and lockouts by economic activity null",
+                                                                   `Trabalhadores envolvidos em greves` = "Workers involved in strikes and lockouts by economic activity (thousands)",
+                                                                   `Dias nao trabalhados (em razao de greves) por 1000 trabalhadores` = "Days not worked per 1000 workers due to strikes and lockouts by economic activity null")),
+                                        plotlyOutput("graf.graves")
+                                      )
                                     )
                    )
   ),

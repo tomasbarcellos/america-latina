@@ -1,7 +1,7 @@
 # Download das dimensoes do inddicador 119
 library(rvest)
 
-url <- "http://interwp.cepal.org/sisgen/ws/cepalstat/getDimensions.asp?idIndicator=119?&language=spanish"
+url <- "http://interwp.cepal.org/sisgen/ws/cepalstat/getDimensions.asp?idIndicator=119&language=spanish"
 pagina <-  read_xml(url)
 
 # Dimensoes
@@ -35,6 +35,7 @@ if (!(length(nomes_dimensoes) == length(id_dimensoes) | length(nomes_dimensoes) 
 }
 
 dicionario_119 <- data.frame(nomes_dimensoes, id_dimensoes, nome_desagregacao,
-                             id_desagregacao, ordem_desagregacao, in_desagregacao)
+                             id_desagregacao, ordem_desagregacao, in_desagregacao,
+                             stringsAsFactors = FALSE)
 
 saveRDS(dicionario_119, "dados/dicionario_119.RDS")

@@ -21,7 +21,7 @@ download.file("http://siteresources.worldbank.org/INTPROSPECTS/Resources/GemData
 arquivosGEM <- unzip(zipfile = "Dados/GEMData.zip", list = T)
 commodities <- grep(pattern = "[C|c]ommodity", x = arquivosGEM)
 unzip(zipfile = "Dados/GEMData.zip", files = arquivosGEM[commodities,1], exdir = "Dados")
-arquivo <- list.files("Dados")
+arquivo <- list.files("Dados", pattern = ".xls")
 
 # Abre no R arquivo com dados dos precos mundais das princiais mercadorias
 precos <- read_excel(path = paste0("Dados/",arquivo), sheet = 1)
@@ -36,8 +36,8 @@ precos[, -1] <- sapply(precos[, -1], as.numeric)
 precos <- gather(data = precos, Mercadoria, Preço, -Ano)
 
 # Salva dados como objeto do R
-if (dir.exists("Arquivos RDS") == FALSE) dir.create("Arquivos RDS")
-saveRDS(object = precos, file = "Arquivos RDS/precos_commodities.rds")
+if (dir.exists("dados") == FALSE) dir.create("dados")
+saveRDS(object = precos, file = "dados/precos_commodities.rds")
 
 ################################
 ####   Download de dados    ####
