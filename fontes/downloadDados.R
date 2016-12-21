@@ -15,16 +15,16 @@ library(rjson)
 ###########################
 
 # Download de dados do Banco Mundial
-if (dir.exists("Dados") == FALSE) dir.create("Dados")
+if (dir.exists("dados") == FALSE) dir.create("dados")
 download.file("http://siteresources.worldbank.org/INTPROSPECTS/Resources/GemDataEXTR.zip", 
-              destfile = "Dados/GEMData.zip")
-arquivosGEM <- unzip(zipfile = "Dados/GEMData.zip", list = T)
+              destfile = "dados/GEMData.zip")
+arquivosGEM <- unzip(zipfile = "dados/GEMData.zip", list = T)
 commodities <- grep(pattern = "[C|c]ommodity", x = arquivosGEM)
-unzip(zipfile = "Dados/GEMData.zip", files = arquivosGEM[commodities,1], exdir = "Dados")
-arquivo <- list.files("Dados", pattern = ".xls")
+unzip(zipfile = "dados/GEMData.zip", files = arquivosGEM[commodities,1], exdir = "Dados")
+arquivo <- list.files("dados", pattern = ".xls")
 
 # Abre no R arquivo com dados dos precos mundais das princiais mercadorias
-precos <- read_excel(path = paste0("Dados/",arquivo), sheet = 1)
+precos <- read_excel(path = paste0("dados/",arquivo), sheet = 1)
 
 # Faz alteracoes necessarias nos dados
 precos <- precos[-1, ]
@@ -194,7 +194,7 @@ comercioAL$cmdCode <- as.integer(as.character(comercioAL$cmdCode))
 
 comercioAL$TradeValue <- as.numeric(as.character(comercioAL$TradeValue))
 
-traducao <- read.csv2(file = "Dados/traducao.csv",
+traducao <- read.csv2(file = "dados/traducao.csv",
                       stringsAsFactors = F)
 
 comercioAL <- left_join(x = comercioAL, y = traducao, by = "cmdCode")

@@ -26,6 +26,7 @@ shinyUI(fluidPage(
   tabsetPanel(
     tabPanel("Mercado Mundial", value = 1),
     tabPanel("Mundo do trabalho", value = 2),
+    tabPanel("Rentismo", value = 3),
     id = "grupo", selected = 1),
   
   # Início da aba 1 - Mercado Mundial
@@ -158,17 +159,18 @@ shinyUI(fluidPage(
                                     
                                     fluidRow(
                                       br(),
-                                      br(),
                                       tags$div(
                                         align = "center",
                                         h3("Evolução do desemprego"),
-                                        sliderInput("periodo.desemprego", label = "Período",
-                                                    min = 2005, max = 2015, value = c(2010,2015)),
-                                        selectInput("genero.desemprego", "Gênero",
-                                                    choices = list("Ambos" = 146,
-                                                                   "Masculino" = 265,
-                                                                   "Feminino" = 266)),
-                                        plotlyOutput("graf.desemprego")
+                                        column(3, 
+                                               sliderInput("periodo.desemprego", label = "Período",
+                                                           min = 2005, max = 2015, value = c(2010,2015)),
+                                               selectInput("genero.desemprego", "Gênero",
+                                                           choices = list("Ambos" = 146,
+                                                                          "Masculino" = 265,
+                                                                          "Feminino" = 266))),
+                                        column(9, 
+                                               plotlyOutput("graf.desemprego"))
                                       )
                                     )
                    ),
@@ -177,16 +179,45 @@ shinyUI(fluidPage(
                                     
                                     fluidRow(
                                       br(),
-                                      br(),
                                       tags$div(
                                         align = "center",
                                         h3("Nº de greves por pais"),
-                                        selectInput("greve.indicador", "Indicador de greves",
-                                                    choices = list(`Greves` = "Number of strikes and lockouts by economic activity null",
-                                                                   `Dias nao trabalhados (em razao de greves)` = "Days not worked due to strikes and lockouts by economic activity null",
-                                                                   `Trabalhadores envolvidos em greves` = "Workers involved in strikes and lockouts by economic activity (thousands)",
-                                                                   `Dias nao trabalhados (em razao de greves) por 1000 trabalhadores` = "Days not worked per 1000 workers due to strikes and lockouts by economic activity null")),
-                                        plotlyOutput("graf.graves")
+                                        column(3,
+                                               selectInput("greve.indicador", "Indicador de greves",
+                                                           choices = list(`Greves` = "Number of strikes and lockouts by economic activity null",
+                                                                          `Dias nao trabalhados (em razao de greves)` = "Days not worked due to strikes and lockouts by economic activity null",
+                                                                          `Trabalhadores envolvidos em greves` = "Workers involved in strikes and lockouts by economic activity (thousands)",
+                                                                          `Dias nao trabalhados (em razao de greves) por 1000 trabalhadores` = "Days not worked per 1000 workers due to strikes and lockouts by economic activity null"))),
+                                        column(9, plotlyOutput("graf.graves"))
+                                      )
+                                    )
+                   )
+  ),
+  
+  # Início da aba 3 - Rentismo
+  conditionalPanel(condition = "input.grupo==3",
+                   
+                   tabsetPanel(
+                     tabPanel("Fronteira agrícola", value = 1),
+                     tabPanel("Setor bancário", value = 2),
+                     id = "tab3selected", selected = 1),
+                   
+                   conditionalPanel(condition = "input.tab3selected==1",
+                                    
+                                    fluidRow(
+                                      br(),
+                                      tags$div(
+                                        align = "center",
+                                        h3("Indicadores de uso da terra"),
+                                        column(3, 
+                                               sliderInput("periodo.fronteira", label = "Período",
+                                                           min = 1991, max = 2015, value = c(1991,2015)),
+                                               selectInput("var.fronteira", "Escolha uma variável",
+                                                           choices = list("Área platada (ha)" = "plantada",
+                                                                          "Área colhida (ha)" = "colhida",
+                                                                          "Quantidade produzida (t)" = "quantidade",
+                                                                          "Valor da produção (R$)" = "valor"))),
+                                        column(9, plotlyOutput("graf.fronteira"))
                                       )
                                     )
                    )

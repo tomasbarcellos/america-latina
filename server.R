@@ -4,6 +4,8 @@ precos <- readRDS("dados/precos_commodities.rds")
 capitais <- readRDS("dados/capitais_AL.rds")
 desemprego <- read_feather('dados/desemprego.feather')
 greves <- readRDS('dados/greves.RDS')
+fronteira <- readRDS('dados/fronteira-agricola.RDS')
+options(scipen = 9e4)
 
 tabela_por_pais <- base %>% filter(ptTitle == "World") %>%
   group_by(rtTitle, rgDesc, yr) %>% summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>% ungroup() %>%
@@ -146,6 +148,18 @@ shinyServer(
         theme_bw()
       ggplotly(graf.greve)
     })
+    
+    # Grafico expansao agricola
+    output$graf.fronteira <- renderPlotly({
+    dado_fronteira <- fronteira %>% filter(ano %in% input$periodo.fronteira[1]:input$periodo.fronteira[2])
+    dado_fronteira <- dado_fronteira[ , c("ano", input$var.fronteira, "cultura")]
+    names(dado_fronteira)[2] <- "y"
+    graf.front <- ggplot(dado_fronteira, aes(ano, y, col = cultura)) +
+      geom_path(size = 2) + 
+      theme_bw() + labs(y = input$var.fronteira)
+    ggplotly(graf.front)
+    })
+    
     
     # Botões para download dos dados dos gráficos 
     output$download.graf1 <- downloadHandler(
