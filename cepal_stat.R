@@ -1,4 +1,4 @@
-# config
+
 CEPAL_stat <- function(id_serie) {
   if(!require(rvest) |
      !require(tidyr) |
