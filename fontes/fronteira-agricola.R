@@ -1,5 +1,6 @@
 # iniciar
 library(tidyr)
+library(dplyr)
 
 # baixar tabela
 download.file(url = 'https://sidra.ibge.gov.br/geratabela?format=br.csv&name=fronteira-agricola.csv&labels=false&query=t/1612/n1/all/v/109,214,215,216/p/all/c81/2692,2702,2708,2711,2713/l/t,v%2Bc81,p',
