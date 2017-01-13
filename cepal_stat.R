@@ -2,7 +2,7 @@
 CEPAL_stat <- function(id_serie) {
   if(!require(rvest) |
      !require(tidyr) |
-     !require(dplyr)) stop("Precisa do pacote 'rvest'.")
+     !require(dplyr)) stop("Precisa dos pacotes 'rvest', 'tidyr' e 'dplyr'.")
   
   serie <- paste0("http://interwp.cepal.org/sisgen/ws/cepalstat/getDataWithoutMeta.asp?IdIndicator=",
                   id_serie, "&language=spanish")
@@ -55,6 +55,8 @@ CEPAL_stat <- function(id_serie) {
   
   dicionarios_lista <- vector('list', n_dim)
   resultado <- dados
+  names(resultado)[seq_len(n_dim)] <- nomes_dimensoes
+  
   
   for (i in seq_len(n_dim)) {
     dicionarios_lista[[i]] <- dicionario_ok %>%
@@ -65,10 +67,8 @@ CEPAL_stat <- function(id_serie) {
     
     resultado <- left_join(resultado, dicionarios_lista[[i]])
     names(resultado)[length(resultado)] <- paste0(names(resultado)[i], "_desc")
-  }  
-  return(resultado)
+  }
   
-  # tem que pensar em uma forma que o nome das variável já fique compreensível;
-  # e não dimensão 203...
+  return(resultado)
   
 }
