@@ -15,11 +15,11 @@ shinyUI(fluidPage(
     fluidRow(
       column(12,
              img(src = "iela_portal_2015_logos_ola.png"),
-             h4("Voce esta participando da criacao de um painel com as informacoes
-              basicas sobre a insercao das sociedades latino-americanas no mercado mundal, 
-              visando tornar seu acompanhamento mais acessivel ao publico brasileiro."),
-             h4("Aqui sera possivel acompanhar a evolucao das estatisticas sobre comercio exterior, 
-              precos das principais merdorias e fluxo de capitais.", align = "justify"))
+             h4("Voce está participando da criação de um painel com as informações
+              básicas sobre a inserção das sociedades latino-americanas no mercado mundial, 
+              visando tornar seu acompanhamento mais acessível ao público brasileiro."),
+             h4("Aqui será possível acompanhar a evolução das estatísticas sobre comércio exterior, 
+              preços das principais mercadorias e fluxos de capitais.", align = "justify"))
     )
   ),
   
@@ -213,7 +213,7 @@ shinyUI(fluidPage(
                                                sliderInput("periodo.fronteira", label = "Período",
                                                            min = 1991, max = 2015, value = c(1991,2015)),
                                                selectInput("var.fronteira", "Escolha uma variável",
-                                                           choices = list("Área platada (ha)" = "plantada",
+                                                           choices = list("Área plantada (ha)" = "plantada",
                                                                           "Área colhida (ha)" = "colhida",
                                                                           "Quantidade produzida (t)" = "quantidade",
                                                                           "Valor da produção (R$)" = "valor"))),
