@@ -1,12 +1,4 @@
 # ui.R
-library(shiny)
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-library(ggthemes)
-library(stringr)
-library(plotly)
-library(feather) #
 
 shinyUI(fluidPage(
   tags$div(align = "center",
@@ -33,16 +25,12 @@ shinyUI(fluidPage(
   conditionalPanel(condition = "input.grupo==1",
                    
                    tabsetPanel(
-                     tabPanel("Comercio Exterior por Pais", value = 1,
-                              helpText("Esta mostra Exportacoes ou importacoes por pais")),
-                     tabPanel("Balanca Comercial", value = 2,
-                              helpText("Esta mostra dados da balanca comercial")),
-                     tabPanel("Precos", value = 3,
-                              helpText("Esta mostra dados dos precos internacionais 
-                      das princiapais mercadorias vendidas por paises latino-americanos")),
-                     tabPanel("Balanca de Capitais", value = 4,
-                              helpText("Esta mostra dados da balanca de capitais")),
-                     id = "tab1selected", selected = 4),
+                     tabPanel("Comercio Exterior por Pais", value = 1),
+                     tabPanel("Balanca Comercial", value = 2),
+                     tabPanel("Precos", value = 3),
+                     tabPanel("Balanca de Capitais", value = 4),
+                     tabPanel("Termos de troca", value = 5),
+                     id = "tab1selected", selected = 5),
                    
                    # Linha para grafico 1
                    conditionalPanel(condition = "input.tab1selected==1",
@@ -139,9 +127,37 @@ shinyUI(fluidPage(
                                              sliderInput("paises.capitais", label = "Numero de paises",
                                                          min = 1, max = 18, value = c(3,5))),
                                       
-                                      column(9,
+                                      column(width = 9,
                                              h3("Serie historica das balancas de capitais"),
                                              plotlyOutput("graf4"))
+                                    )
+                   ),
+                   
+                   # Aba de termos de troca
+                   conditionalPanel(condition = "input.tab1selected==5",
+                                    
+                                    fluidRow(
+                                      
+                                      column(3,
+                                             br(),
+                                             br(),
+                                             selectInput("termos_var", label = "Escolha  a variável sobre termos de troca que deseja conhecer", 
+                                                         choices = list("Poder de compra das exportações de bens" = 4361,
+                                                                        "Termos de trocas de bens, FOB" = 4357,
+                                                                        "Porder de compra das exportações de bens e serviços" = 4359,
+                                                                        "Termos de troca de bens e serviços"= 4360,
+                                                                        "Termos de troca de serviços" = 4358),
+                                                         selected = "Termos de troca de bens e serviços"),
+                                             br(),
+                                             br(),
+                                             checkboxGroupInput("termos_pais", label = "Escolha os paises",
+                                                                choices = structure(unique(termos_troca$País),
+                                                                                    names = unique(termos_troca$País_desc)),
+                                                                selected = c("Brasil", "México", "Argentina"), inline = TRUE)),
+                                      
+                                      column(width = 9,
+                                             h3("Série histórica dos termos de troca"),
+                                             plotlyOutput("graf_termos"))
                                     )
                    )
   ),
@@ -155,6 +171,7 @@ shinyUI(fluidPage(
                      tabPanel("Valor da Força de Trabalho", value = 3),
                      id = "tab2selected", selected = 1),
                    
+                   # Aba desemprego
                    conditionalPanel(condition = "input.tab2selected==1",
                                     
                                     fluidRow(
@@ -162,7 +179,14 @@ shinyUI(fluidPage(
                                       tags$div(
                                         align = "center",
                                         h3("Evolução do desemprego"),
-                                        column(3, 
+                                        column(3,
+                                               checkboxGroupInput(
+                                                 "paises.desemprego", "Países",
+                                                 choices = unique(desemprego$País_desc),
+                                                 selected = c(Argentina = "Argentina", 
+                                                              Brasil = "Brasil",
+                                                              Venezuela = "Venezuela (República Bolivariana de)"),
+                                                 inline = TRUE), 
                                                sliderInput("periodo.desemprego", label = "Período",
                                                            min = 2005, max = 2015, value = c(2010,2015)),
                                                selectInput("genero.desemprego", "Gênero",
@@ -170,11 +194,12 @@ shinyUI(fluidPage(
                                                                           "Masculino" = 265,
                                                                           "Feminino" = 266))),
                                         column(9, 
-                                               plotlyOutput("graf.desemprego"))
+                                               plotlyOutput("graf_desemprego"))
                                       )
                                     )
                    ),
                    
+                   # Aba greves
                    conditionalPanel(condition = "input.tab2selected==2",
                                     
                                     fluidRow(
@@ -187,8 +212,14 @@ shinyUI(fluidPage(
                                                            choices = list(`Greves` = "Number of strikes and lockouts by economic activity null",
                                                                           `Dias nao trabalhados (em razao de greves)` = "Days not worked due to strikes and lockouts by economic activity null",
                                                                           `Trabalhadores envolvidos em greves` = "Workers involved in strikes and lockouts by economic activity (thousands)",
-                                                                          `Dias nao trabalhados (em razao de greves) por 1000 trabalhadores` = "Days not worked per 1000 workers due to strikes and lockouts by economic activity null"))),
-                                        column(9, plotlyOutput("graf.graves"))
+                                                                          `Dias nao trabalhados (em razao de greves) por 1000 trabalhadores` = "Days not worked per 1000 workers due to strikes and lockouts by economic activity null"),
+                                                           selected = "Number of strikes and lockouts by economic activity null"),
+                                               checkboxGroupInput("greve.paises", "Países",
+                                                                  choices = unique(greves$ref_area.label),
+                                                                  selected = c(Argentina = "Argentina",
+                                                                               Brasil = "Brazil",
+                                                                               Mexico = "Mexico"), inline = TRUE)),
+                                        column(9, plotlyOutput("graf_greves"))
                                       )
                                     )
                    )
@@ -217,7 +248,7 @@ shinyUI(fluidPage(
                                                                           "Área colhida (ha)" = "colhida",
                                                                           "Quantidade produzida (t)" = "quantidade",
                                                                           "Valor da produção (R$)" = "valor"))),
-                                        column(9, plotlyOutput("graf.fronteira"))
+                                        column(9, plotlyOutput("graf_fronteira"))
                                       )
                                     )
                    )
