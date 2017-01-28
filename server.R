@@ -7,12 +7,11 @@ shinyServer(
     output$titulo1 <- renderText(paste("Comercio exterior para os paises selecionados\n", input$tipo))
     
     output$graf1 <- renderPlotly({
-      tipo <- switch(input$tipo,
-                     "Exportacao" = '[2|3]',
-                     'Importacao' = '[1|4]',
-                     'Exportacao e Importacao' = '[1-4]')
       
-      por_pais <- base %>% filter(grepl(x = rgCode, tipo), ptTitle == "World", yr == as.character(input$ano)) %>%
+      por_pais <- base %>% 
+        filter(grepl(x = rgCode, pattern = input$tipo),
+               ptTitle == "World",
+               yr == as.character(input$ano)) %>%
         group_by(rtTitle) %>% summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>% ungroup() %>%
         arrange(desc(Valor))
       
@@ -32,13 +31,12 @@ shinyServer(
     output$titulo2 <- renderText(paste(input$tipo,"de", input$pais, "\nem", input$ano))
     
     output$graf2 <- renderPlotly({
-      tipo <- switch(input$tipo,
-                     'Exportacao' = '[2|3]',
-                     'Importacao' = '[1|4]',
-                     'Exportacao e Importacao' = '[1-4]')
       
       por_merc <- base %>% 
-        filter(grepl(x = rgCode, tipo), ptTitle == "World", grepl(x = yr, input$ano), rtTitle == input$pais) %>%
+        filter(grepl(x = rgCode, pattern = input$tipo),
+               ptTitle == "World",
+               yr == as.character(input$ano),
+               rtTitle == input$pais) %>%
         group_by(cmdCode) %>% summarise(Mercadoria = first(cmdDescEPt),
                                         Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
         arrange(desc(Valor)) %>%

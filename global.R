@@ -1,6 +1,7 @@
 # global.R
 
 library(shiny)
+library(shinydashboard)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -8,6 +9,8 @@ library(ggthemes)
 library(stringr)
 library(plotly)
 library(feather)
+
+options(encoding = "UTF-8")
 
 base <- readRDS("dados/dados_dfJSON.rds")
 precos <- readRDS("dados/precos_commodities.rds")
