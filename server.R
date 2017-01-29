@@ -11,20 +11,21 @@ shinyServer(
       por_pais <- base %>% 
         filter(grepl(x = rgCode, pattern = input$tipo),
                ptTitle == "World",
-               yr == as.character(input$ano)) %>%
+               yr == as.character(input$ano),
+               rtTitle %in% input$quant) %>%
         group_by(rtTitle) %>% summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>% ungroup() %>%
         arrange(desc(Valor))
       
-      graf_pais <- ggplot(data = por_pais[1:input$quant, ], aes(x = reorder(rtTitle, Valor), y = Valor)) +
+      graf_pais <- ggplot(data = por_pais, aes(x = reorder(rtTitle, Valor), y = Valor)) +
         geom_bar(stat = 'identity', fill = 'indianred', alpha = 0.9) +
         geom_text(aes(label = format(x = Valor, decimal.mark = ",")),
                   hjust = 5.1, col = 'black', size = 6) +
         guides(fill = 'none') +
         theme_bw(base_size = 14) +
         theme(axis.text.y = element_text(size = 9, face = 'bold', hjust = 1)) +
-        labs(x = '', y = "Bilhoes de US$", fill = '') #+
-      coord_flip()
-      ggplotly(p = graf_pais)
+        labs(x = '', y = "Bilhoes de US$", fill = '') 
+      
+      ggplotly(graf_pais)
     })
     
     # Balança comercial detalhada
@@ -47,6 +48,7 @@ shinyServer(
         geom_text(aes(label = format(x = Valor, decimal.mark = ",")),
                   hjust = -4.1, col = 'black', size = 6) +
         theme_bw(base_size = 15) +
+        theme(axis.text.y = element_text(size = 8, face = 'bold')) +
         labs(x = "", y = "Volume de comercio, em bilhoes de US$") +
         coord_flip()
       ggplotly(graf_merc)
@@ -60,11 +62,12 @@ shinyServer(
                                       Ano >= input$periodo[1], Ano <= input$periodo[2])
       graf_precos <- ggplot(precos.dim, aes(x = Ano, y = preco)) + 
         geom_line(data = precos.dim,
-                  aes(col = Mercadoria), alpha = 0.9) +
+                  aes(col = Mercadoria), alpha = 0.9, size = 2) +
         theme_bw() +
         scale_fill_discrete()
       
-      ggplotly(graf_precos)
+      ggplotly(graf_precos) %>%
+        layout(legend = list(orientation = 'h'))
     })
     
     # Balança de capitais
@@ -76,17 +79,19 @@ shinyServer(
                     "Balanca de rendas" = "(4) Income balance",
                     "Transferencias liquidas" = "(5) Net resource transfers = (3) + (4)"
       )
-      seletor <- capitais %>% filter(ano == max(ano)) %>% arrange(desc(valor)) %>% select(pais) %>% unique()
-      paises.capitais <- input$paises.capitais[1]:input$paises.capitais[2]      
+      # seletor <- capitais %>% filter(ano == max(ano)) %>% arrange(desc(valor)) %>% select(pais) %>% unique()
+      # paises.capitais <- input$paises.capitais[1]:input$paises.capitais[2]      
       
       graf_capitais <- ggplot(data = capitais %>% filter(variavel == var,
-                                                         pais %in% seletor$pais[paises.capitais]),
+                                                         pais %in% input$paises.capitais #seletor$pais[paises.capitais]
+                                                         ),
                               aes(x = ano , y = valor, col = reorder(pais, valor))) +
         geom_point() + geom_smooth(alpha = 0.7, se = FALSE) +
         theme_bw() +
-        scale_color_discrete() +
-        theme(legend.position = "bottom")
-      ggplotly(graf_capitais)
+        scale_color_discrete()
+      
+      ggplotly(graf_capitais) %>%
+        layout(legend = list(orientation = 'h'))
     })
     
     # Termos de troca
@@ -97,8 +102,11 @@ shinyServer(
       
       ggplot(dado, aes(x = as.numeric(Años_desc), 
                        y = valor, col = País_desc)) +
-        geom_line()
-      ggplotly()
+        geom_line(size = 2) +
+        theme_bw()
+      
+      ggplotly() %>%
+        layout(legend = list(orientation = 'h'))
     })
     
     
@@ -111,10 +119,10 @@ shinyServer(
                                     `Escolaridad (EH)` == 1427)
       graf_des <- ggplot(dado, aes(x = Años_desc, y = valor, col = País_desc)) +
         geom_line(size = 2) +
-        theme_bw() + labs(col = "")
+        theme_bw() + labs(x = "Ano")
       
-      ggplotly(graf_des)
-      
+      ggplotly(graf_des)  %>%
+        layout(legend = list(orientation = 'h'))
     })
     
     # Gráfico de greves
@@ -129,9 +137,10 @@ shinyServer(
       
       graf_greve <- ggplot(dado_greve,
                            aes(ano, dado, color = Pais)) +
-        geom_line() + 
+        geom_line(size = 2) + 
         theme_bw()
-      ggplotly(graf_greve)
+      ggplotly(graf_greve) %>%
+        layout(legend = list(orientation = 'h'))
     })
     
     # Grafico expansao agricola
@@ -142,7 +151,9 @@ shinyServer(
     graf_front <- ggplot(dado_fronteira, aes(ano, y, col = cultura)) +
       geom_path(size = 2) + 
       theme_bw() + labs(y = input$var.fronteira)
-    ggplotly(graf_front)
+    
+    ggplotly(graf_front) %>%
+      layout(legend = list(orientation = 'h'))
     })
     
     

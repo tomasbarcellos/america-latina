@@ -13,14 +13,15 @@ shinyUI(dashboardPage(skin = "green",
                menuSubItem("Comercio Exterior", "comex", icon = icon("bar-chart")),
                menuSubItem("Preços", "precos", icon = icon("line-chart")),
                menuSubItem("Balanca de Capitais", "capitais", icon = icon("money")),
-               menuSubItem("Termos de troca", "termos", icon = icon("line-chart"))),
+               menuSubItem("Termos de troca", "termos", selected = TRUE,
+                           icon = icon("line-chart"))),
       
       menuItem("Trabalhadores",
                menuSubItem("Desemprego", "desemprego", icon = icon("glyphicon-cutlery", lib = "glyphicon")),
                menuSubItem("Greves", "greves", icon = icon("glyphicon-equalizer", lib = "glyphicon"))),
       
       menuItem("Rentismo", 
-               menuSubItem("Fronteira Agrícola", "front_agri",
+               menuSubItem("Fronteira Agrícola", "front_agri", 
                            icon = icon("glyphicon-stats", lib = "glyphicon")))
     )
   ),
@@ -33,42 +34,47 @@ shinyUI(dashboardPage(skin = "green",
       #####
       tabItem("comex",
               fluidRow(
-                box(title = "Filtros", width = 12,
-                    column(6,
-                           selectInput("tipo", label = "Escolha  a categoria do comercio exterior", 
-                                       choices = list("Exportação" = '[2|3]',
-                                                      "Importação" = '[1|4]',
-                                                      "Exportação e Importação" = '[1-4]'),
-                                       selected = "Exportação"),
-                           
-                           sliderInput("ano", label = "Escolha o período",
-                                       min = 2011, max = 2015, value = 2013),
-                           
-                           sliderInput("quant", label = "Quantos paises?",
-                                       min = 3, max = 18, value = 5)
-                ),
-                column(6,
-                       selectInput("pais",
-                                   label = "Deseja obter informacoes sobre qual pais?", 
-                                   choices = list("Argentina", "Bolivia (Plurinational State of)",
-                                                  "Brazil", "Chile", "Colombia", "Dominican Rep.",
-                                                  "Ecuador", "El Salvador", "Guatemala", "Guinea",
-                                                  "Honduras", "Jamaica", "Mexico", "Nicaragua",
-                                                  "Panama", "Paraguay", "Peru", "Uruguay", "Venezuela"),
-                                   selected = "Brazil"),
-                       
-                       sliderInput("qt_merc", label = "Mostrar mercadorias que acumulem quantos por cento?",
-                                   min = 40, max = 85, value = 50))
+                box(title = "Filtros - categoria de comécio", width = 6,
+                    selectInput("tipo", label = "Escolha  a categoria do comercio exterior", 
+                                choices = list("Exportação" = '[2|3]',
+                                               "Importação" = '[1|4]',
+                                               "Exportação e Importação (corrente de comércio)" = '[1-4]'),
+                                selected = "Exportação")),
+                box("Filtros - Ano", width = 6,
+                    sliderInput("ano", label = "Escolha o ano",
+                                min = 2011, max = 2015, value = 2013)
                 )
               ),
               fluidRow(
-                box(title = "Comercio Exterior por Pais", width = 12,
+                box("Países", width = 2,
+                    checkboxGroupInput("quant", label = "Escolha os países",
+                                              choices = list("Argentina", "Bolivia (Plurinational State of)",
+                                                             "Brazil", "Chile", "Colombia", "Dominican Rep.",
+                                                             "Ecuador", "El Salvador", "Guatemala", "Guinea",
+                                                             "Honduras", "Jamaica", "Mexico", "Nicaragua",
+                                                             "Panama", "Paraguay", "Peru", "Uruguay", "Venezuela"),
+                                              selected = c("Brazil", "Argentina", "Venezuela"), inline = TRUE)),
+                
+                box(title = "Comercio Exterior por Pais", width = 10,
                   # downloadLink('download.graf1', "Clique aqui para baixar os dados deste grafico!"),
                   plotlyOutput("graf1")
                 )
               ),
               fluidRow(
-                box(title = "Balanca Comercial", width = 12,
+                box("Detalhamento da balança comercial", width = 2,
+                           selectInput("pais",
+                                       label = "Deseja obter informacoes sobre qual pais?", 
+                                       choices = list("Argentina", "Bolivia (Plurinational State of)",
+                                                      "Brazil", "Chile", "Colombia", "Dominican Rep.",
+                                                      "Ecuador", "El Salvador", "Guatemala", "Guinea",
+                                                      "Honduras", "Jamaica", "Mexico", "Nicaragua",
+                                                      "Panama", "Paraguay", "Peru", "Uruguay", "Venezuela"),
+                                       selected = "Brazil"),
+                           
+                           sliderInput("qt_merc", label = "Mostrar mercadorias que acumulem quantos por cento?",
+                                       min = 40, max = 85, value = 50)),
+                
+                box(title = "Balanca Comercial", width = 10,
                   # downloadLink('download.graf2', "Clique aqui para baixar os dados deste grafico!"),
                   plotlyOutput("graf2")
                 )
@@ -120,12 +126,13 @@ shinyUI(dashboardPage(skin = "green",
                                          "Transferencias liquidas"), selected = "Total da entrada liquida de capital")
               ),
           box("Filtro - Países", width = 6,
-              sliderInput("paises.capitais", label = "Numero de paises",
-                          min = 1, max = 18, value = c(3,5)))
-              ),
+              checkboxGroupInput("paises.capitais", "Países", inline = TRUE,
+                                 choices = unique(capitais$pais), 
+                                 selected = c("Argentina", "Chile", "Colombia"))
+          )
+        ),
         fluidRow(
           box("Balança de capitais", width = 12,
-              h3("Serie historica das balancas de capitais"),
               plotlyOutput("graf4")
               )
         )
@@ -134,13 +141,13 @@ shinyUI(dashboardPage(skin = "green",
       #####
       tabItem("termos",
               fluidRow(
-                box("Filtro - País", width = 6,
+                box("Filtro - País", width = 8,
                   checkboxGroupInput("termos_pais", label = "Escolha os paises",
                                      choices = structure(unique(termos_troca$País),
                                                          names = unique(termos_troca$País_desc)),
                                      selected = c("Brasil", "México", "Argentina"), inline = TRUE)
                 ),
-                box("Filtro - Variável", width = 6,
+                box("Filtro - Variável", width = 4,
                     selectInput("termos_var", label = "Escolha  a variável sobre termos de troca que deseja conhecer", 
                                 choices = list("Poder de compra das exportações de bens" = 4361,
                                                "Termos de trocas de bens, FOB" = 4357,
@@ -152,7 +159,6 @@ shinyUI(dashboardPage(skin = "green",
               ),
               fluidRow(
                 box("Gráfico", width = 12,
-                    h3("Série histórica dos termos de troca"),
                     plotlyOutput("graf_termos")
                 )
               )
@@ -160,7 +166,7 @@ shinyUI(dashboardPage(skin = "green",
     #####
       tabItem("desemprego",
               fluidRow(
-                box("Filtros - Paises", width = 4,
+                box("Filtros - Paises", width = 7,
                     checkboxGroupInput(
                       "paises.desemprego", "Países",
                       choices = unique(desemprego$País_desc),
@@ -168,16 +174,15 @@ shinyUI(dashboardPage(skin = "green",
                                    Brasil = "Brasil",
                                    Venezuela = "Venezuela (República Bolivariana de)"),
                       inline = TRUE)),
-                box("Filtros - Paises", width = 4,
-                    sliderInput("periodo.desemprego", label = "Período",
-                                min = 2005, max = 2015, value = c(2010,2015))
-                ),
-                box("Filtros - Paises", width = 4,
+                box("Filtros - Paises", width = 5,
                     selectInput("genero.desemprego", "Gênero",
                                 choices = list("Ambos" = 146,
                                                "Masculino" = 265,
-                                               "Feminino" = 266))
+                                               "Feminino" = 266)),
+                    sliderInput("periodo.desemprego", label = "Período",
+                                min = 2005, max = 2015, value = c(2008,2015)
                     )
+                )
               ),
               fluidRow(
                 box("Gráfico - Desemprego", width = 12,
@@ -189,7 +194,7 @@ shinyUI(dashboardPage(skin = "green",
     #####
     tabItem("greves",
             fluidRow(
-              box("Filtros - Número de greves", width = 6,
+              box("Filtros - Número de greves", width = 4,
                          selectInput("greve.indicador", "Indicador de greves",
                                      choices = list(`Greves` = "Number of strikes and lockouts by economic activity null",
                                                     `Dias nao trabalhados (em razao de greves)` = "Days not worked due to strikes and lockouts by economic activity null",
@@ -197,7 +202,7 @@ shinyUI(dashboardPage(skin = "green",
                                                     `Dias nao trabalhados (em razao de greves) por 1000 trabalhadores` = "Days not worked per 1000 workers due to strikes and lockouts by economic activity null"),
                                      selected = "Number of strikes and lockouts by economic activity null")
                   ),
-              box("Filtros - Países", width = 6,
+              box("Filtros - Países", width = 8,
                 checkboxGroupInput("greve.paises", "Países",
                                    choices = unique(greves$ref_area.label),
                                    selected = c(Argentina = "Argentina",
