@@ -49,10 +49,10 @@ shinyServer(
                   hjust = -4.1, col = 'black', size = 6) +
         theme_bw(base_size = 15) +
         theme(axis.text.y = element_text(size = 8, face = 'bold')) +
-        labs(x = "", y = "Volume de comercio, em bilhoes de US$") +
+        labs(x = " ", y = "Volume de comercio, em bilhoes de US$") +
         coord_flip()
-      ggplotly(graf_merc)
       
+      ggplotly(graf_merc)
     })
     
     # Preços das principais mercadorias
@@ -64,7 +64,8 @@ shinyServer(
         geom_line(data = precos.dim,
                   aes(col = Mercadoria), alpha = 0.9, size = 2) +
         theme_bw() +
-        scale_fill_discrete()
+        # scale_fill_discrete() +
+        labs(x = " ", y = "Índice (2010 = 100)")
       
       ggplotly(graf_precos) %>%
         layout(legend = list(orientation = 'h'))
@@ -88,7 +89,9 @@ shinyServer(
                               aes(x = ano , y = valor, col = reorder(pais, valor))) +
         geom_point() + geom_smooth(alpha = 0.7, se = FALSE) +
         theme_bw() +
-        scale_color_discrete()
+        scale_color_discrete() +
+        # scale_x_discrete(limit = input$) +
+        labs(x = " ", y = "Bilhões de dólares")
       
       ggplotly(graf_capitais) %>%
         layout(legend = list(orientation = 'h'))
@@ -103,7 +106,9 @@ shinyServer(
       ggplot(dado, aes(x = as.numeric(Años_desc), 
                        y = valor, col = País_desc)) +
         geom_line(size = 2) +
-        theme_bw()
+        theme_bw() +
+        # scale_x_discrete() +
+        labs(x = " ", y = "Índice (2010 = 100)")
       
       ggplotly() %>%
         layout(legend = list(orientation = 'h'))
@@ -119,7 +124,9 @@ shinyServer(
                                     `Escolaridad (EH)` == 1427)
       graf_des <- ggplot(dado, aes(x = Años_desc, y = valor, col = País_desc)) +
         geom_line(size = 2) +
-        theme_bw() + labs(x = "Ano")
+        theme_bw() +
+        # scale_x_discrete() +
+        labs(x = " ", y = "Taxa de desemprego (%)")
       
       ggplotly(graf_des)  %>%
         layout(legend = list(orientation = 'h'))
@@ -127,6 +134,12 @@ shinyServer(
     
     # Gráfico de greves
     output$graf_greves <- renderPlotly({
+      vertical <- switch(input$greve.indicador,
+                         "Number of strikes and lockouts by economic activity null" = "Número de greves",
+                         "Days not worked due to strikes and lockouts by economic activity null" = "Dias nao trabalhados (em razão de greves)",
+                         "Workers involved in strikes and lockouts by economic activity (thousands)" = "Trabalhadores envolvidos em greves",
+                         "Days not worked per 1000 workers due to strikes and lockouts by economic activity null" = "Dias não trabalhados (em razão de greves)\n por 1000 trabalhadores")
+      
       dado_greve <- greves %>%
         filter(indicator.label == input$greve.indicador,
                ref_area.label %in% input$greve.paises) %>%
@@ -138,24 +151,38 @@ shinyServer(
       graf_greve <- ggplot(dado_greve,
                            aes(ano, dado, color = Pais)) +
         geom_line(size = 2) + 
-        theme_bw()
+        theme_bw() +
+        scale_y_discrete() + 
+        labs(x = " ", y = vertical)
       ggplotly(graf_greve) %>%
         layout(legend = list(orientation = 'h'))
     })
     
     # Grafico expansao agricola
     output$graf_fronteira <- renderPlotly({
+    vertical <- switch(input$var.fronteira,
+                       "plantada" = "Hectares",
+                       "colhida" = "Hectares",
+                       "quantidade" = "Toneladas",
+                       "valor" = "Milhares de R$")
+      
     dado_fronteira <- fronteira %>% filter(ano %in% input$periodo.fronteira[1]:input$periodo.fronteira[2])
     dado_fronteira <- dado_fronteira[ , c("ano", input$var.fronteira, "cultura")]
     names(dado_fronteira)[2] <- "y"
     graf_front <- ggplot(dado_fronteira, aes(ano, y, col = cultura)) +
       geom_path(size = 2) + 
-      theme_bw() + labs(y = input$var.fronteira)
+      theme_bw() +
+      labs(y = vertical)
     
     ggplotly(graf_front) %>%
       layout(legend = list(orientation = 'h'))
     })
     
+    output$popup <- renderUI({
+      bsModal("modalExample", paste0("Data for Row Number: ", 1), "", size = "large",
+              column(12, "Ok")
+      )
+    })
     
     # Botões para download dos dados dos gráficos 
     output$download.graf1 <- downloadHandler(
