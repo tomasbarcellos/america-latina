@@ -6,6 +6,33 @@ shinyServer(
     # Comércio exterior por país
     output$titulo1 <- renderText(paste("Comercio exterior para os paises selecionados\n", input$tipo))
     
+    output$mapa <- renderLeaflet({
+      por_pais <- base %>% 
+        filter(grepl(x = rgCode, pattern = input$tipo),
+               ptTitle == "World",
+               rtTitle %in% input$quant,
+               yr == as.character(input$ano)) %>%
+        group_by(rtTitle) %>%
+        summarise(ISO3 =  first(rt3ISO),
+                  Valor = round(sum(TradeValue)/10^9, digits = 1),
+                  etiqueta = paste0(": US$", Valor, " Bi")) %>%
+        ungroup()
+      
+      formas <- sp::merge(shapes, por_pais)
+      
+      formas$etiqueta[is.na(formas$Valor)] <- ": Sem informações"
+      
+      formas %>% leaflet() %>% 
+        addProviderTiles(providers$OpenMapSurfer) %>% 
+        addPolygons(color = "#444444", weight = 1, smoothFactor = 0.2,
+                    opacity = 1.0, fillOpacity = 0.9,
+                    label = ~paste0(NAME, etiqueta),
+                    fillColor = ~colorQuantile("Greens", Valor, probs = seq(0, 1, 0.2))(Valor),
+                    highlightOptions = highlightOptions(color = "white", weight = 2,
+                                                        bringToFront = TRUE)) %>%
+        setView(lng = -75, lat = -15, zoom = 2)
+    })
+    
     output$graf1 <- renderPlotly({
       
       por_pais <- base %>% 
@@ -87,7 +114,7 @@ shinyServer(
                                                          pais %in% input$paises.capitais #seletor$pais[paises.capitais]
                                                          ),
                               aes(x = ano , y = valor, col = reorder(pais, valor))) +
-        geom_point() + geom_smooth(alpha = 0.7, se = FALSE) +
+        geom_line(size = 2) +
         theme_bw() +
         scale_color_discrete() +
         # scale_x_discrete(limit = input$) +
@@ -142,7 +169,9 @@ shinyServer(
       
       dado_greve <- greves %>%
         filter(indicator.label == input$greve.indicador,
-               ref_area.label %in% input$greve.paises) %>%
+               ref_area.label %in% input$greve.paises,
+               time > input$greve.anos[1],
+               time < input$greve.anos[2]) %>%
         group_by(ref_area.label, time) %>%
         summarise(Pais = first(ref_area.label),
                   ano = first(time),
@@ -152,7 +181,6 @@ shinyServer(
                            aes(ano, dado, color = Pais)) +
         geom_line(size = 2) + 
         theme_bw() +
-        scale_y_discrete() + 
         labs(x = " ", y = vertical)
       ggplotly(graf_greve) %>%
         layout(legend = list(orientation = 'h'))

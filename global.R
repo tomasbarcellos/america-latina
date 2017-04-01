@@ -9,7 +9,8 @@ library(ggplot2)
 library(ggthemes)
 library(stringr)
 library(plotly)
-library(feather)
+library(sp)
+library(leaflet)
 
 base <- readRDS("dados/dados_dfJSON.rds")
 precos <- readRDS("dados/precos_commodities.rds")
@@ -18,8 +19,9 @@ desemprego <- readRDS('dados/desemprego.RDS')
 greves <- readRDS('dados/greves.RDS')
 fronteira <- readRDS('dados/fronteira-agricola.RDS')
 termos_troca <- readRDS("dados/termos_troca.RDS")
+shapes <- readRDS('dados/shapes.RDS')
 
-options(scipen = 9e4) #
+options(scipen = 9e4)
 
 base$rtTitle <- as.character(base$rtTitle)
 
