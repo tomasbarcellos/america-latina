@@ -260,3 +260,36 @@ capitais.AL <- left_join(x = capitais.AL, y = variavel, by = "variavel_CEPAL")
 rm(variavel)
 
 saveRDS(capitais.AL, "capitais_AL.rds")
+
+# Reservas internacionais
+library(ecoseries)
+reservas <- series_bacen(3546)[[1]] # milhões de US$ # mensal
+                          
+juros_FED <- series_bacen(18152)[[1]] # % a.a. # mensal
+
+div_interna <- series_bacen(4154)[[1]] # milhões de u.m.c. # mensal
+
+PIB <- series_bacen(4382)[[1]] # milhõs R$ # mensal
+
+selic <- series_bacen(4189)[[1]] # % a.a. # mensal
+
+cambio <- series_bacen(3697)[[1]]
+
+custo_reservas <- left_join(juros_FED, reservas, by = 'data') %>% 
+  left_join(PIB, by = 'data') %>% left_join(selic, by = 'data') %>% 
+  left_join(cambio)
+
+names(custo_reservas)[2:6] <- c('juros_FED', 'reservas', 'PIB', 'selic', 'cambio')
+
+custo_reservas <- custo_reservas %>% 
+  mutate(data = as.Date(data , format = '%d/%m/%Y'),
+         custo = (reservas * cambio) * (selic - juros_FED), # em milhões de R$
+         custo_PIB = custo / PIB)
+
+saveRDS(custo_reservas, 'dados/reservas.RDS')
+
+
+# library(GetTDData)
+# download.TD.data(NULL)
+# TD <- read.TD.files()
+# head(TD)
