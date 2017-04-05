@@ -22,6 +22,8 @@ shinyServer(
       
       formas$etiqueta[is.na(formas$Valor)] <- ": Sem informações"
       
+      formas <- subset(formas, formas$rtTitle %in% input$quant)
+      
       formas %>% leaflet() %>% 
         addProviderTiles(providers$OpenMapSurfer) %>% 
         addPolygons(color = "#444444", weight = 1, smoothFactor = 0.2,
@@ -206,11 +208,22 @@ shinyServer(
       layout(legend = list(orientation = 'h'))
     })
     
-    output$popup <- renderUI({
-      bsModal("modalExample", paste0("Data for Row Number: ", 1), "", size = "large",
-              column(12, "Ok")
-      )
+    output$graf_reservas <- renderPlotly({
+      etiqueta <- if (input$var.reservas == 'custo') {
+        "Custo (milhões de R$ correntes)"
+        } else "Custo (% do PIB)"
+      
+      dado <- reservas %>%
+        filter(data > as.Date(as.character(input$periodo.reservas[1]), format = "%Y"),
+               data < as.Date(as.character(input$periodo.reservas[2]), format = "%Y"))
+      valor <- dado[[input$var.reservas]]
+      ggplot(dado, aes(data, valor)) + 
+        geom_line(size = 2, color = "darkgreen", alpha = 0.8) +
+        theme_bw() +
+        scale_x_date("") +
+        labs(y = etiqueta)
     })
+      
     
     # Botões para download dos dados dos gráficos 
     output$download.graf1 <- downloadHandler(

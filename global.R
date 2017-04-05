@@ -20,6 +20,7 @@ greves <- readRDS('dados/greves.RDS')
 fronteira <- readRDS('dados/fronteira-agricola.RDS')
 termos_troca <- readRDS("dados/termos_troca.RDS")
 shapes <- readRDS('dados/shapes.RDS')
+reservas <- readRDS('dados/reservas.RDS')
 
 options(scipen = 9e4)
 

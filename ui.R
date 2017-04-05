@@ -22,6 +22,8 @@ shinyUI(dashboardPage(skin = "green",
       
       menuItem("Foco no Brasil", 
                menuSubItem("Fronteira Agrícola", "front_agri", 
+                           icon = icon("glyphicon-stats", lib = "glyphicon")),
+               menuSubItem("Custo da reservas", "reservas", 
                            icon = icon("glyphicon-stats", lib = "glyphicon")))
     )
   ),
@@ -289,6 +291,28 @@ shinyUI(dashboardPage(skin = "green",
                                    )
                     )
               )
+            
+    ),
+    tabItem("reservas",
+            fluidRow(
+              box(title = "Custo das reservas", width = 12, 
+                  p(actionLink("reservas_filtros", "Filtros"), align = 'right'),
+                  plotlyOutput("graf_reservas", height = '100%'),
+                  p("Fonte:", a("Banco Central do Brasil - BCB", href = "http://www.bcb.gov.br/")),
+                  shinyBS::bsModal("reservas_modal", "Filtros", "reservas_filtros", size = 'large',
+                                   fluidRow(
+                                     box(width = 6,
+                                         sliderInput("periodo.reservas", label = "Período",
+                                                     min = 1994, max = 2015, value = c(1994,2015))
+                                     ),
+                                     box(width = 6,
+                                         selectInput("var.reservas", "Escolha uma variável",
+                                                     choices = list("Custo (milhões de R$ correntes)" = "custo",
+                                                                    "Custo (% do PIB)" = "custo_PIB"))
+                                     ))
+                  )
+              )
+            )
             
     )
     )
