@@ -26,10 +26,10 @@ options(scipen = 9e4)
 
 base$rtTitle <- as.character(base$rtTitle)
 
-tabela_por_pais <- base %>% filter(ptTitle == "World") %>%
-  group_by(rtTitle, rgDesc, yr) %>% 
-  summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>% ungroup() %>%
-  arrange(desc(Valor))
+# tabela_por_pais <- base %>% filter(ptTitle == "World") %>%
+#   group_by(rtTitle, rgDesc, yr) %>% 
+#   summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>% ungroup() %>%
+#   arrange(desc(Valor))
 
 tabela_por_merc <- base %>% 
   filter(ptTitle == "World") %>%
@@ -39,3 +39,8 @@ tabela_por_merc <- base %>%
   arrange(desc(Valor))
 
 names(precos)[3] <- 'preco'
+
+# escolhas = c(0, unique(base$cmdCode))
+# names(escolhas) = c("Todas", unique(base$cmdDescEPt))
+# escolhas <- escolhas[!is.na(names(escolhas))]
+

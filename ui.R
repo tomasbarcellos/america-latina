@@ -55,9 +55,10 @@ shinyUI(dashboardPage(skin = "green",
                                               choices = list("Exportação" = '[2|3]',
                                                              "Importação" = '[1|4]',
                                                              "Exportação e Importação (corrente de comércio)" = '[1-4]'),
-                                              selected = "Exportação")
-                     )),
-                     fluidRow(box("", width = 12,
+                                              selected = "Exportação"),
+                                  selectInput("mapa_merc", "Mercadoria: ", 
+                                              choices = unique(base$cmdDescE),
+                                              selected = 2),
                                   sliderInput("ano", label = "Escolha o ano",
                                               min = 2011, max = 2015, value = 2013)
                      ))

@@ -11,28 +11,30 @@ shinyServer(
         filter(grepl(x = rgCode, pattern = input$tipo),
                ptTitle == "World",
                rtTitle %in% input$quant,
-               yr == as.character(input$ano)) %>%
+               yr == as.character(input$ano),
+               cmdDescE == input$mapa_merc) %>%
         group_by(rtTitle) %>%
         summarise(ISO3 =  first(rt3ISO),
-                  Valor = round(sum(TradeValue)/10^9, digits = 1),
-                  etiqueta = paste0(": US$", Valor, " Bi")) %>%
-        ungroup()
+                  Valor = round(sum(TradeValue)/10^6, digits = 1),
+                  etiqueta = paste0(": US$ ", Valor, " Mi")) %>%
+        ungroup() %>% mutate(cor = colorQuantile("Greens", Valor)(Valor))
       
       formas <- sp::merge(shapes, por_pais)
-      
+
       formas$etiqueta[is.na(formas$Valor)] <- ": Sem informações"
-      
+
       formas <- subset(formas, formas$rtTitle %in% input$quant)
       
-      formas %>% leaflet() %>% 
-        addProviderTiles(providers$OpenMapSurfer) %>% 
+      formas %>% leaflet() %>%
+        addProviderTiles(providers$OpenMapSurfer) %>%
         addPolygons(color = "#444444", weight = 1, smoothFactor = 0.2,
                     opacity = 1.0, fillOpacity = 0.9,
                     label = ~paste0(NAME, etiqueta),
-                    fillColor = ~colorQuantile("Greens", Valor, probs = seq(0, 1, 0.2))(Valor),
+                    fillColor = ~cor,
                     highlightOptions = highlightOptions(color = "white", weight = 2,
                                                         bringToFront = TRUE)) %>%
         setView(lng = -75, lat = -15, zoom = 2)
+      # dput(por_pais[1:10, 1:5])
     })
     
     output$graf1 <- renderPlotly({
