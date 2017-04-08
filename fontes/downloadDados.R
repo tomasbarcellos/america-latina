@@ -6,6 +6,7 @@
 library(dplyr)
 library(readxl)
 library(rjson)
+library(httr)
 
 ###########################
 #### Download de dados ####
@@ -59,44 +60,49 @@ get.Comtrade <- function(r, # Area do relatorio. Um numero por pais
                          p = "all", # Todos parceiros comerciais
                          rg = "all", # Regime de comercio (import, export)
                          cc = "AG2", # Nivel de detalhamento
-                         fmt = "json" # Formato CSV
+                         fmt = "json" # Formato JSON
 )
 {
-  string<- paste(url
-                 ,"max=",maxrec,"&" #maximum no. of records returned
-                 ,"type=",type,"&" #type of trade (c=commodities)
-                 ,"freq=",freq,"&" #frequency
-                 ,"px=",px,"&" #classification
-                 ,"ps=",ps,"&" #time period
-                 ,"r=",r,"&" #reporting area
-                 ,"p=",p,"&" #partner country
-                 ,"rg=",rg,"&" #trade flow
-                 ,"cc=",cc,"&" #classification code
-                 ,"fmt=",fmt        #Format
-                 ,sep = ""
+  string<- paste0(url
+                  ,"max=",maxrec,"&" #maximum no. of records returned
+                  ,"type=",type,"&" #type of trade (c=commodities)
+                  ,"freq=",freq,"&" #frequency
+                  ,"px=",px,"&" #classification
+                  ,"ps=",ps,"&" #time period
+                  ,"r=",r,"&" #reporting area
+                  ,"p=",p,"&" #partner country
+                  ,"rg=",rg,"&" #trade flow
+                  ,"cc=",cc,"&" #classification code
+                  ,"fmt=",fmt        #Format
   )
   
+  cat("Conectando com UNComTrade...\n")
+  
+  resposta <- httr::RETRY("GET", string)
+  
+  cat("Resposta recebida!\n")
+  
   if(fmt == "csv") {
-    raw.data<- read.csv(string,header=TRUE, stringsAsFactors = FALSE)
+    raw.data<- read.csv(httr::content(resposta),header=TRUE, stringsAsFactors = TRUE)
     return(list(validation=NULL, data=raw.data))
   } else {
     if(fmt == "json" ) {
-      raw.data<- fromJSON(file=string)
-      data<- raw.data$dataset
+      raw.data <- httr::content(resposta)
+      data <- raw.data$dataset
       validation<- unlist(raw.data$validation, recursive=TRUE)
-      ndata<- NULL
-      if(length(data)> 0) {
-        var.names<- names(data[[1]])
-        data<- as.data.frame(t( sapply(data,rbind)))
-        ndata<- NULL
+      ndata <- NULL
+      if(length(data) > 0) {
+        var.names <- names(data[[1]])
+        data <- as.data.frame(t( sapply(data, rbind)))
+        ndata <- NULL
         for(i in 1:ncol(data)){
-          data[sapply(data[,i],is.null),i]<- NA
-          ndata<- cbind(ndata, unlist(data[,i]))
+          data[sapply(data[,i],is.null),i] <- NA
+          ndata <- cbind(ndata, unlist(data[,i]))
         }
-        ndata<- as.data.frame(ndata)
-        colnames(ndata)<- var.names
+        ndata <- as.data.frame(ndata)
+        colnames(ndata) <- var.names
       }
-      return(list(validation=validation,data =ndata))
+      return(list(validation = validation, data = ndata))
     }
   }
 } # Fim da fun??o
@@ -120,30 +126,30 @@ comercioAL <- vector("list", nrow(am_lat))
 names(comercioAL) <- am_lat$pais
 
 # Loop que tenta fazer o download dos dados de exporta??o de cada pa?s
-for (pais in 1:nrow(am_lat)) {
+for (pais in seq_along(am_lat$pais)) {
   comercioAL[[pais]] <- try(get.Comtrade(am_lat[pais,1]))
 } # Primeira rodada, erros de conexao sao comuns
 
 # Cria vetor que armazenar? os erros da ?ltima opera??o
-erros <- sapply(comercioAL, function (x) class(x) == "try-error")
+erros <- which(sapply(comercioAL, function (x) class(x) == "try-error") |
+  sapply(comercioAL, function (x) is.null(x$data)))
 
 # Imprime a quatidade de erros occoridos, caso hajam
-warning(sum(erros), if (sum(erros) == 1) {" erro encontrado!"} else {" erros encontrados!"},
-    if(sum(erros) >0 ) {
+warning(length(erros), if (length(erros) == 1) {" erro encontrado!"} else {" erros encontrados!"},
+    if(length(erros) >0 ) {
       " Rode o c?digo abaixo para realizar nova tentativa de download para aqueles pa?ses em que ouve falha"})
 
 # Loop que dura enquanto persistirem erros na tentativa de download
-while (sum(erros) > 0){
-  for (pais in 1:nrow(am_lat)) {
-    if (class(comercioAL[[pais]]) == "try-error") {
-      comercioAL[[pais]] <- try(get.Comtrade(am_lat[pais,1])) 
-    }
+while (length(erros) > 0) {
+  for (i in erros) {
+    comercioAL[[i]] <- try(get.Comtrade(am_lat[i,1])) 
   }
-  for (i in seq_along(erros)) {
-    erros[i] <- class(comercioAL[[i]]) == "try-error"
-  }
-  warning(sum(erros), if (sum(erros) == 1) {" erro encontrado!"} else {" erros encontrados!"},
-          if(sum(erros) >0 ) {
+  
+  erros <- which(sapply(comercioAL, function (x) class(x) == "try-error") |
+                   sapply(comercioAL, function (x) any(sapply(x, is.null))))
+  
+  warning(length(erros), if (length(erros) == 1) {" erro encontrado!"} else {" erros encontrados!"},
+          if(length(erros) >0 ) {
             " Realizarei uma nova tentativa"})
 }
 
@@ -151,55 +157,46 @@ while (sum(erros) > 0){
 # comercioAL[[which(erros == TRUE)]] <- (get.Comtrade(am_lat[which(erros == TRUE),1]))
 
 # Salva os dados como objeto(lista) do R
-saveRDS(comercioAL,file = "dados_listaJSON.rds")
+# saveRDS(comercioAL, file = "comercio_listaJSON.rds")
 
 # Elimina lista dos paises que tenha falhado em fazer download (elimine '#' da linha abaixo)
 # comercioAL[[which(erros == TRUE)]] <- NULL
 
-sapply(comercioAL, sapply, length)
+AL_df <- vector('list', length(comercioAL))
+names(AL_df) <- names(comercioAL)
 
-# Elimina lista "validation"(vazia) das listas e transforma a lita "data" na lista principal
-for (pais in seq_along(comercioAL)) {
-  comercioAL[[pais]] <- comercioAL[[pais]]$data
+for (pais in seq_along(AL_df)) {
+  if (length(comercioAL[[i]]) == 2) {
+    AL_df[[pais]] <- comercioAL[[pais]]$data
+  } else {
+    AL_df[[pais]] <- comercioAL[[pais]]
+  }
+  
 }
-
-# Verifica se o loop funcionou
-str(comercioAL, max.level = 1)
 
 # Quatro pa?ses foram eliminador por n?o ter nenhum registros sobre comercio exterior.
 # S?o eles Cuba, Guiana Francesa, Haiti e Trinidad y Tobago
 
-# O comando precisa ser refeito "individualmente" para os casos abaixo
-comercioAL$`Rep. Dominacana` <- comercioAL$`Rep. Dominacana`$data
-
-comercioAL$Guatemala <- comercioAL$Guatemala$data
-
-comercioAL$Honduras <- comercioAL$Honduras$data
-
-comercioAL$Uruguay <- comercioAL$Uruguay$data
-
-str(comercioAL, max.level = 1)
-
 # Transforma todas as listas num unico data-frame
-comercioAL <- as.data.frame(do.call(rbind, comercioAL))
+AL_df <- as.data.frame(do.call(rbind, AL_df))
 
 # Verifica quais colunas s?o inuteis (apenas NAs)
-elim <- as.vector(which(sapply(comercioAL, function (x) sum(is.na(x)) == length(x)) | 
-        sapply(comercioAL, function (x) length(levels(x)) <= 1) == T))
+elim <- as.vector(which(sapply(AL_df, function (x) sum(is.na(x)) == length(x)) | 
+        sapply(AL_df, function (x) length(levels(x)) <= 1) == T))
 
 # Elimina colunas inuteis
-comercioAL <- comercioAL[ , -elim]
+AL_df <- AL_df[ , -elim]
 
-comercioAL$cmdCode <- as.integer(as.character(comercioAL$cmdCode))
+AL_df$cmdCode <- as.integer(as.character(AL_df$cmdCode))
 
-comercioAL$TradeValue <- as.numeric(as.character(comercioAL$TradeValue))
+AL_df$TradeValue <- as.numeric(as.character(AL_df$TradeValue))
 
 traducao <- read.csv2(file = "dados/traducao.csv",
                       stringsAsFactors = F)
 
-comercioAL <- left_join(x = comercioAL, y = traducao, by = "cmdCode")
+AL_df <- left_join(x = AL_df, y = traducao, by = "cmdCode")
 
-saveRDS(comercioAL,file = "Arquivos RDS/dados_dfJSON.rds", version = 2)
+saveRDS(AL_df,file = "dados/comercioAL.RDS", version = 2)
 
 ###########################
 #### Download de dados ####
