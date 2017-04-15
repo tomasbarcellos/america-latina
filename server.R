@@ -1,23 +1,4 @@
 # server.R
-base <- readRDS("dados/dados_dfJSON.rds")
-precos <- readRDS("dados/precos_commodities.rds")
-capitais <- readRDS("dados/capitais_AL.rds")
-desemprego <- read_feather('dados/desemprego.feather')
-greves <- readRDS('dados/greves.RDS')
-fronteira <- readRDS('dados/fronteira-agricola.RDS')
-options(scipen = 9e4) #
-
-tabela_por_pais <- base %>% filter(ptTitle == "World") %>%
-  group_by(rtTitle, rgDesc, yr) %>% summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>% ungroup() %>%
-  arrange(desc(Valor))
-
-tabela_por_merc <- base %>% 
-  filter(ptTitle == "World") %>%
-  group_by(cmdCode, rgDesc, yr, rtTitle) %>% summarise(Mercadoria = first(cmdDescEPt),
-                                                       Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
-  arrange(desc(Valor))
-
-names(precos)[3] <- 'preco'
 
 shinyServer(
   function(input, output) {
@@ -25,53 +6,84 @@ shinyServer(
     # Comércio exterior por país
     output$titulo1 <- renderText(paste("Comercio exterior para os paises selecionados\n", input$tipo))
     
-    output$graf1 <- renderPlotly({
-      tipo <- switch(input$tipo,
-                     "Exportacao" = '[2|3]',
-                     'Importacao' = '[1|4]',
-                     'Exportacao e Importacao' = '[1-4]')
+    output$mapa <- renderLeaflet({
+      por_pais <- base %>% 
+        filter(grepl(x = rgCode, pattern = input$tipo),
+               ptTitle == "World",
+               rtTitle %in% input$quant,
+               yr == as.character(input$ano),
+               cmdDescE == input$mapa_merc) %>%
+        group_by(rtTitle) %>%
+        summarise(ISO3 =  first(rt3ISO),
+                  Valor = round(sum(TradeValue)/10^6, digits = 1),
+                  etiqueta = paste0(": US$ ", Valor, " Mi")) %>%
+        ungroup() %>% mutate(cor = colorQuantile("Greens", Valor)(Valor))
       
-      por_pais <- base %>% filter(grepl(x = rgCode, tipo), ptTitle == "World", yr == as.character(input$ano)) %>%
+      formas <- sp::merge(shapes, por_pais)
+
+      formas$etiqueta[is.na(formas$Valor)] <- ": Sem informações"
+
+      formas <- subset(formas, formas$rtTitle %in% input$quant)
+      
+      formas %>% leaflet() %>%
+        addProviderTiles(providers$OpenMapSurfer) %>%
+        addPolygons(color = "#444444", weight = 1, smoothFactor = 0.2,
+                    opacity = 1.0, fillOpacity = 0.9,
+                    label = ~paste0(NAME, etiqueta),
+                    fillColor = ~cor,
+                    highlightOptions = highlightOptions(color = "white", weight = 2,
+                                                        bringToFront = TRUE)) %>%
+        setView(lng = -75, lat = -15, zoom = 2)
+      # dput(por_pais[1:10, 1:5])
+    })
+    
+    output$graf1 <- renderPlotly({
+      
+      por_pais <- base %>% 
+        filter(grepl(x = rgCode, pattern = input$tipo),
+               ptTitle == "World",
+               yr == as.character(input$ano),
+               rtTitle %in% input$quant) %>%
         group_by(rtTitle) %>% summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>% ungroup() %>%
         arrange(desc(Valor))
       
-      graf.pais <- ggplot(data = por_pais[1:input$quant, ], aes(x = reorder(rtTitle, Valor), y = Valor)) +
+      graf_pais <- ggplot(data = por_pais, aes(x = reorder(rtTitle, Valor), y = Valor)) +
         geom_bar(stat = 'identity', fill = 'indianred', alpha = 0.9) +
         geom_text(aes(label = format(x = Valor, decimal.mark = ",")),
                   hjust = 5.1, col = 'black', size = 6) +
         guides(fill = 'none') +
         theme_bw(base_size = 14) +
         theme(axis.text.y = element_text(size = 9, face = 'bold', hjust = 1)) +
-        labs(x = '', y = "Bilhoes de US$", fill = '') #+
-      coord_flip()
-      ggplotly(p = graf.pais)
+        labs(x = '', y = "Bilhoes de US$", fill = '') 
+      
+      ggplotly(graf_pais)
     })
     
     # Balança comercial detalhada
     output$titulo2 <- renderText(paste(input$tipo,"de", input$pais, "\nem", input$ano))
     
     output$graf2 <- renderPlotly({
-      tipo <- switch(input$tipo,
-                     'Exportacao' = '[2|3]',
-                     'Importacao' = '[1|4]',
-                     'Exportacao e Importacao' = '[1-4]')
       
       por_merc <- base %>% 
-        filter(grepl(x = rgCode, tipo), ptTitle == "World", grepl(x = yr, input$ano), rtTitle == input$pais) %>%
+        filter(grepl(x = rgCode, pattern = input$tipo),
+               ptTitle == "World",
+               yr == as.character(input$ano),
+               rtTitle == input$pais) %>%
         group_by(cmdCode) %>% summarise(Mercadoria = first(cmdDescEPt),
                                         Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
         arrange(desc(Valor)) %>%
         ungroup() %>% mutate(soma_acu = cumsum(Valor), percentual = soma_acu*100/sum(Valor))
       
-      graf.merc <- ggplot(data = por_merc %>% filter(percentual <= input$qt_merc), aes(x = reorder(Mercadoria, Valor), y = Valor)) +
+      graf_merc <- ggplot(data = por_merc %>% filter(percentual <= input$qt_merc), aes(x = reorder(Mercadoria, Valor), y = Valor)) +
         geom_bar(stat = 'identity', fill = 'indianred', alpha = 0.9) +
         geom_text(aes(label = format(x = Valor, decimal.mark = ",")),
                   hjust = -4.1, col = 'black', size = 6) +
         theme_bw(base_size = 15) +
-        labs(x = "", y = "Volume de comercio, em bilhoes de US$") +
+        theme(axis.text.y = element_text(size = 8, face = 'bold')) +
+        labs(x = " ", y = "Volume de comercio, em bilhoes de US$") +
         coord_flip()
-      ggplotly(graf.merc)
       
+      ggplotly(graf_merc)
     })
     
     # Preços das principais mercadorias
@@ -79,13 +91,15 @@ shinyServer(
     output$graf3 <- renderPlotly({
       precos.dim <- precos %>% filter(Mercadoria %in% input$mercadoria, 
                                       Ano >= input$periodo[1], Ano <= input$periodo[2])
-      graf.precos <- ggplot(precos.dim, aes(x = Ano, y = preco)) + 
+      graf_precos <- ggplot(precos.dim, aes(x = Ano, y = preco)) + 
         geom_line(data = precos.dim,
-                  aes(col = Mercadoria), alpha = 0.9) +
+                  aes(col = Mercadoria), alpha = 0.9, size = 2) +
         theme_bw() +
-        scale_fill_discrete()
+        # scale_fill_discrete() +
+        labs(x = " ", y = "Índice (2010 = 100)")
       
-      ggplotly(graf.precos)
+      ggplotly(graf_precos) %>%
+        layout(legend = list(orientation = 'h'))
     })
     
     # Balança de capitais
@@ -97,69 +111,121 @@ shinyServer(
                     "Balanca de rendas" = "(4) Income balance",
                     "Transferencias liquidas" = "(5) Net resource transfers = (3) + (4)"
       )
-      seletor <- capitais %>% filter(ano == max(ano)) %>% arrange(desc(valor)) %>% select(pais) %>% unique()
-      paises.capitais <- input$paises.capitais[1]:input$paises.capitais[2]      
+      # seletor <- capitais %>% filter(ano == max(ano)) %>% arrange(desc(valor)) %>% select(pais) %>% unique()
+      # paises.capitais <- input$paises.capitais[1]:input$paises.capitais[2]      
       
-      graf.capitais <- ggplot(data = capitais %>% filter(variavel == var,
-                                                         pais %in% seletor$pais[paises.capitais]),
+      graf_capitais <- ggplot(data = capitais %>% filter(variavel == var,
+                                                         pais %in% input$paises.capitais #seletor$pais[paises.capitais]
+                                                         ),
                               aes(x = ano , y = valor, col = reorder(pais, valor))) +
-        geom_point() + geom_smooth(alpha = 0.7, se = FALSE) +
+        geom_line(size = 2) +
         theme_bw() +
         scale_color_discrete() +
-        theme(legend.position = "bottom")
-      ggplotly(graf.capitais)
+        # scale_x_discrete(limit = input$) +
+        labs(x = " ", y = "Bilhões de dólares")
+      
+      ggplotly(graf_capitais) %>%
+        layout(legend = list(orientation = 'h'))
     })
     
-    output$graf.desemprego <- renderPlotly({
-      switch(as.character(input$periodo.desemprego),
-             '2005' = '29175',
-             '2006' = '29176',
-             '2007' = '29177',
-             '2008' = '29178',
-             '2009' = '29179',
-             '2010' = '29180',
-             '2011' = '29181',
-             '2012' = '29182',
-             '2013' = '29183',
-             '2014' = '29184',
-             '2015' = '29185')
+    # Termos de troca
+    output$graf_termos <- renderPlotly({
+      dado <- termos_troca %>% 
+        filter(Rubro == input$termos_var,
+               País %in% input$termos_pais)
       
-      dado <- desemprego %>% filter(genero == input$genero.desemprego,
-                                    ano %in% input$periodo.desemprego)
-      graf.des <- ggplot(dado, aes(x = pais, y = valor, fill = ano)) +
-        geom_bar(stat = "identity", position = "dodge") +
-        theme_bw()
+      ggplot(dado, aes(x = as.numeric(Años_desc), 
+                       y = valor, col = País_desc)) +
+        geom_line(size = 2) +
+        theme_bw() +
+        # scale_x_discrete() +
+        labs(x = " ", y = "Índice (2010 = 100)")
       
-      ggplotly(graf.des)
+      ggplotly() %>%
+        layout(legend = list(orientation = 'h'))
+    })
+    
+    
+    # Gráfico desemprego
+    output$graf_desemprego <- renderPlotly({
+      dado <- desemprego %>% filter(Sexo == input$genero.desemprego,
+                                    between(Años_desc, input$periodo.desemprego[1],
+                                            input$periodo.desemprego[2]),
+                                    País_desc %in% input$paises.desemprego,
+                                    `Escolaridad (EH)` == 1427)
+      graf_des <- ggplot(dado, aes(x = Años_desc, y = valor, col = País_desc)) +
+        geom_line(size = 2) +
+        theme_bw() +
+        # scale_x_discrete() +
+        labs(x = " ", y = "Taxa de desemprego (%)")
+      
+      ggplotly(graf_des)  %>%
+        layout(legend = list(orientation = 'h'))
     })
     
     # Gráfico de greves
-    output$graf.graves <- renderPlotly({
+    output$graf_greves <- renderPlotly({
+      vertical <- switch(input$greve.indicador,
+                         "Number of strikes and lockouts by economic activity null" = "Número de greves",
+                         "Days not worked due to strikes and lockouts by economic activity null" = "Dias nao trabalhados (em razão de greves)",
+                         "Workers involved in strikes and lockouts by economic activity (thousands)" = "Trabalhadores envolvidos em greves",
+                         "Days not worked per 1000 workers due to strikes and lockouts by economic activity null" = "Dias não trabalhados (em razão de greves)\n por 1000 trabalhadores")
+      
       dado_greve <- greves %>%
-        filter(indicator.label == input$greve.indicador) %>%
+        filter(indicator.label == input$greve.indicador,
+               ref_area.label %in% input$greve.paises,
+               time > input$greve.anos[1],
+               time < input$greve.anos[2]) %>%
         group_by(ref_area.label, time) %>%
         summarise(Pais = first(ref_area.label),
                   ano = first(time),
                   dado = sum(obs_value))
       
-      graf.greve <- ggplot(dado_greve,
+      graf_greve <- ggplot(dado_greve,
                            aes(ano, dado, color = Pais)) +
-        geom_line() + 
-        theme_bw()
-      ggplotly(graf.greve)
+        geom_line(size = 2) + 
+        theme_bw() +
+        labs(x = " ", y = vertical)
+      ggplotly(graf_greve) %>%
+        layout(legend = list(orientation = 'h'))
     })
     
     # Grafico expansao agricola
-    output$graf.fronteira <- renderPlotly({
+    output$graf_fronteira <- renderPlotly({
+    vertical <- switch(input$var.fronteira,
+                       "plantada" = "Hectares",
+                       "colhida" = "Hectares",
+                       "quantidade" = "Toneladas",
+                       "valor" = "Milhares de R$")
+      
     dado_fronteira <- fronteira %>% filter(ano %in% input$periodo.fronteira[1]:input$periodo.fronteira[2])
     dado_fronteira <- dado_fronteira[ , c("ano", input$var.fronteira, "cultura")]
     names(dado_fronteira)[2] <- "y"
-    graf.front <- ggplot(dado_fronteira, aes(ano, y, col = cultura)) +
+    graf_front <- ggplot(dado_fronteira, aes(ano, y, col = cultura)) +
       geom_path(size = 2) + 
-      theme_bw() + labs(y = input$var.fronteira)
-    ggplotly(graf.front)
+      theme_bw() +
+      labs(y = vertical)
+    
+    ggplotly(graf_front) %>%
+      layout(legend = list(orientation = 'h'))
     })
     
+    output$graf_reservas <- renderPlotly({
+      etiqueta <- if (input$var.reservas == 'custo') {
+        "Custo (milhões de R$ correntes)"
+        } else "Custo (% do PIB)"
+      
+      dado <- reservas %>%
+        filter(data > as.Date(as.character(input$periodo.reservas[1]), format = "%Y"),
+               data < as.Date(as.character(input$periodo.reservas[2]), format = "%Y"))
+      valor <- dado[[input$var.reservas]]
+      ggplot(dado, aes(data, valor)) + 
+        geom_line(size = 2, color = "darkgreen", alpha = 0.8) +
+        theme_bw() +
+        scale_x_date("") +
+        labs(y = etiqueta)
+    })
+      
     
     # Botões para download dos dados dos gráficos 
     output$download.graf1 <- downloadHandler(
