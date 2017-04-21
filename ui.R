@@ -24,6 +24,10 @@ shinyUI(dashboardPage(skin = "green",
                menuSubItem("Fronteira Agrícola", "front_agri", 
                            icon = icon("glyphicon-stats", lib = "glyphicon")),
                menuSubItem("Custo da reservas", "reservas", 
+                           icon = icon("glyphicon-stats", lib = "glyphicon")),
+               menuSubItem("Salário Mínimo Necessário", "SMN", 
+                           icon = icon("glyphicon-stats", lib = "glyphicon")),
+               menuSubItem("Concentração Bancária", "concen", 
                            icon = icon("glyphicon-stats", lib = "glyphicon")))
     )
   ),
@@ -57,10 +61,10 @@ shinyUI(dashboardPage(skin = "green",
                                                              "Exportação e Importação (corrente de comércio)" = '[1-4]'),
                                               selected = "Exportação"),
                                   selectInput("mapa_merc", "Mercadoria: ", 
-                                              choices = unique(base$cmdDescE),
+                                              choices = c("Total", as.character(unique(base$cmdDescE))),
                                               selected = 2),
                                   sliderInput("ano", label = "Escolha o ano",
-                                              min = 2011, max = 2015, value = 2013)
+                                              min = 2007, max = 2016, value = 2016)
                      ))
               ),
               column(6,
@@ -315,7 +319,48 @@ shinyUI(dashboardPage(skin = "green",
               )
             )
             
-    )
-    )
+    ),
+    tabItem("SMN",
+            fluidRow(
+              box(title = "Relação entre Salário Mínimo e Salário Mínimo Necessário", width = 12, 
+                  # p(actionLink("SMN_filtros", "Filtros"), align = 'right'),
+                  plotlyOutput("graf_SMN", height = '100%'),
+                  p("Fonte:", a("Departamento Intersindical de Estatística e Estudos Socioeconômicos - DIEESE", href = "http://www.dieese.org.br/analisecestabasica/salarioMinimo.html"))
+                  # shinyBS::bsModal("SMN_modal", "Filtros", "SMN_filtros", size = 'large',
+                  #                  fluidRow(
+                  #                    box(width = 6,
+                  #                        sliderInput("periodo.reservas", label = "Período",
+                  #                                    min = 1994, max = 2015, value = c(1994,2015))
+                  #                    ),
+                  #                    box(width = 6,
+                  #                        selectInput("var.reservas", "Escolha uma variável",
+                  #                                    choices = list("Custo (milhões de R$ correntes)" = "custo",
+                  #                                                   "Custo (% do PIB)" = "custo_PIB"))
+                  #                    ))
+                  # )
+              )
+            )
+            
+    ),
+    
+    tabItem("concen",
+            fluidRow(
+              box(title = "Concentração bancária", width = 12, 
+                  p(actionLink("concen_filtros", "Filtros"), align = 'right'),
+                  plotlyOutput("graf_concen", height = '100%'),
+                  p("Fonte:", a("Banco Central do Brasil - BACEN", href = "http://www.bcb.gov.br")),
+                  shinyBS::bsModal("concen_modal", "Filtros", "concen_filtros", size = 'large',
+                                   fluidRow(
+                                     box(width = 12,
+                                         selectInput("concen.var", "Escolha uma medida",
+                                                     choices = list("Participação dos 4 maiores bancos (%)" = 'RC4',
+                                                                    "Índice de Herfindahl-Hirschman" = 'IHH'),
+                                                     selected = "RC4")
+                                     ))
+                  )
+              )
+            )
+            
+    ))
   )
 ))
