@@ -4,9 +4,11 @@
 # install.packages("rjson")
 
 library(dplyr)
+library(tidyr)
 library(readxl)
 library(rjson)
 library(httr)
+library(rvest)
 
 ###########################
 #### Download de dados ####
@@ -78,9 +80,9 @@ get.Comtrade <- function(r, # Area do relatorio. Um numero por pais
   
   cat("Conectando com UNComTrade...\n")
   
-  resposta <- httr::RETRY("GET", string)
+  resposta <- RETRY("GET", string)
   
-  cat("Resposta recebida!\n")
+  cat("Resposta recebida: ", http_status(resposta)[[1]],"\n")
   
   if(fmt == "csv") {
     raw.data<- read.csv(httr::content(resposta),header=TRUE, stringsAsFactors = TRUE)
@@ -127,12 +129,13 @@ names(comercioAL) <- am_lat$pais
 
 # Loop que tenta fazer o download dos dados de exporta??o de cada pa?s
 for (pais in seq_along(am_lat$pais)) {
-  comercioAL[[pais]] <- try(get.Comtrade(am_lat[pais,1]))
+  comercioAL[[pais]] <- try(get.Comtrade(am_lat[pais,1],
+                                         ps = "2011,2010,2009,2008,2007"))
 } # Primeira rodada, erros de conexao sao comuns
 
 # Cria vetor que armazenar? os erros da ?ltima opera??o
 erros <- which(sapply(comercioAL, function (x) class(x) == "try-error") |
-  sapply(comercioAL, function (x) is.null(x$data)))
+  sapply(comercioAL, function (x) any(sapply(x, is.null))))
 
 # Imprime a quatidade de erros occoridos, caso hajam
 warning(length(erros), if (length(erros) == 1) {" erro encontrado!"} else {" erros encontrados!"},
@@ -174,9 +177,6 @@ for (pais in seq_along(AL_df)) {
   
 }
 
-# Quatro pa?ses foram eliminador por n?o ter nenhum registros sobre comercio exterior.
-# S?o eles Cuba, Guiana Francesa, Haiti e Trinidad y Tobago
-
 # Transforma todas as listas num unico data-frame
 AL_df <- as.data.frame(do.call(rbind, AL_df))
 
@@ -191,12 +191,18 @@ AL_df$cmdCode <- as.integer(as.character(AL_df$cmdCode))
 
 AL_df$TradeValue <- as.numeric(as.character(AL_df$TradeValue))
 
-traducao <- read.csv2(file = "dados/traducao.csv",
-                      stringsAsFactors = F)
+# traducao <- read.csv2(file = "dados/traducao.csv",
+#                       stringsAsFactors = F)
+# 
+# AL_df <- left_join(x = AL_df, y = traducao, by = "cmdCode")
 
-AL_df <- left_join(x = AL_df, y = traducao, by = "cmdCode")
+AL_df <- unique(AL_df)
 
-saveRDS(AL_df,file = "dados/comercioAL.RDS", version = 2)
+antigo <- readRDS('dados/comercioAL.RDS')
+
+novo <- rbind(AL_df, antigo)
+
+saveRDS(novo, file = "dados/comercioAL.RDS")
 
 ###########################
 #### Download de dados ####
@@ -290,3 +296,40 @@ saveRDS(custo_reservas, 'dados/reservas.RDS')
 # download.TD.data(NULL)
 # TD <- read.TD.files()
 # head(TD)
+
+###################
+## SM NECESSARIO ##
+###################
+
+
+resp <- GET('http://www.dieese.org.br/analisecestabasica/salarioMinimo.html')
+SMN <- content(resp) %>% html_table() %>% `[[`(1)
+SMN[, 2:3] <- sapply(SMN[, 2:3], gsub, pattern = "\\.", replacement = "")
+SMN[, 2:3] <- sapply(SMN[, 2:3], gsub, pattern = "\\n", replacement = " ")
+SMN[, 2:3] <- sapply(SMN[, 2:3], gsub, pattern = ",", replacement = ".")
+SMN[, 2:3] <- sapply(SMN[, 2:3], gsub, pattern = "R\\$ ", replacement = "")
+SMN[, 2:3] <- sapply(SMN[, 2:3], as.numeric)
+SMN <- SMN %>% filter(!grepl(x = SMN$Período, pattern = "[0-9]{4}")) %>% 
+  mutate(Data = sort(seq.Date(as.Date('1994-07-01'), by = "1 month",
+                              length.out = nrow(.)),
+                     decreasing = TRUE),
+         Taxa = round(`Salário mínimo nominal` / `Salário mínimo necessário`, 3))
+saveRDS(SMN, 'dados/sal_min_nec.RDS')
+
+###########################
+## Concentração bancária ##
+###########################
+
+arquivo <- 'fontes/concentracao.xlsx'
+resp <- GET('http://www.bcb.gov.br/htms/estabilidade/2017_04/refAnexoEstatistico.xlsx', # falta automatizar
+            write_disk(arquivo))
+IHH <- read_excel(arquivo, "IHH", skip = 4) %>% 
+  `[`(3:6) %>% mutate(indice = "IHH")
+RC4 <- read_excel(arquivo, "RC4", skip = 38) %>%
+  `[`(3:6) %>% mutate(indice = "RC4")
+concentracao <- bind_rows(IHH, RC4) %>% 
+  gather(key = metrica, value = valor, -indice, -Trim.)
+
+saveRDS(concentracao, 'dados/concentracao.RDS')
+
+

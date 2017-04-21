@@ -7,17 +7,28 @@ shinyServer(
     output$titulo1 <- renderText(paste("Comercio exterior para os paises selecionados\n", input$tipo))
     
     output$mapa <- renderLeaflet({
+      if (input$mapa_merc == "Total") {
+        mercadoria <- TRUE
+      } else {
+        mercadoria <- base$cmdDescE == input$mapa_merc
+      }
+      
       por_pais <- base %>% 
         filter(grepl(x = rgCode, pattern = input$tipo),
                ptTitle == "World",
                rtTitle %in% input$quant,
                yr == as.character(input$ano),
-               cmdDescE == input$mapa_merc) %>%
+               mercadoria) %>%
         group_by(rtTitle) %>%
         summarise(ISO3 =  first(rt3ISO),
                   Valor = round(sum(TradeValue)/10^6, digits = 1),
                   etiqueta = paste0(": US$ ", Valor, " Mi")) %>%
-        ungroup() %>% mutate(cor = colorQuantile("Greens", Valor)(Valor))
+        ungroup() 
+      por_pais <- por_pais %>% mutate(cor = if (n() <= 2) {
+          rep("#238B45", n())
+        } else {
+          colorQuantile("Greens", por_pais$Valor)(por_pais$Valor)
+        })
       
       formas <- sp::merge(shapes, por_pais)
 
@@ -37,27 +48,27 @@ shinyServer(
       # dput(por_pais[1:10, 1:5])
     })
     
-    output$graf1 <- renderPlotly({
-      
-      por_pais <- base %>% 
-        filter(grepl(x = rgCode, pattern = input$tipo),
-               ptTitle == "World",
-               yr == as.character(input$ano),
-               rtTitle %in% input$quant) %>%
-        group_by(rtTitle) %>% summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>% ungroup() %>%
-        arrange(desc(Valor))
-      
-      graf_pais <- ggplot(data = por_pais, aes(x = reorder(rtTitle, Valor), y = Valor)) +
-        geom_bar(stat = 'identity', fill = 'indianred', alpha = 0.9) +
-        geom_text(aes(label = format(x = Valor, decimal.mark = ",")),
-                  hjust = 5.1, col = 'black', size = 6) +
-        guides(fill = 'none') +
-        theme_bw(base_size = 14) +
-        theme(axis.text.y = element_text(size = 9, face = 'bold', hjust = 1)) +
-        labs(x = '', y = "Bilhoes de US$", fill = '') 
-      
-      ggplotly(graf_pais)
-    })
+    # output$graf1 <- renderPlotly({
+    #   
+    #   por_pais <- base %>% 
+    #     filter(grepl(x = rgCode, pattern = input$tipo),
+    #            ptTitle == "World",
+    #            yr == as.character(input$ano),
+    #            rtTitle %in% input$quant) %>%
+    #     group_by(rtTitle) %>% summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>% ungroup() %>%
+    #     arrange(desc(Valor))
+    #   
+    #   graf_pais <- ggplot(data = por_pais, aes(x = reorder(rtTitle, Valor), y = Valor)) +
+    #     geom_bar(stat = 'identity', fill = 'indianred', alpha = 0.9) +
+    #     geom_text(aes(label = format(x = Valor, decimal.mark = ",")),
+    #               hjust = 5.1, col = 'black', size = 6) +
+    #     guides(fill = 'none') +
+    #     theme_bw(base_size = 14) +
+    #     theme(axis.text.y = element_text(size = 9, face = 'bold', hjust = 1)) +
+    #     labs(x = '', y = "Bilhoes de US$", fill = '') 
+    #   
+    #   ggplotly(graf_pais)
+    # })
     
     # Balança comercial detalhada
     output$titulo2 <- renderText(paste(input$tipo,"de", input$pais, "\nem", input$ano))
@@ -66,10 +77,10 @@ shinyServer(
       
       por_merc <- base %>% 
         filter(grepl(x = rgCode, pattern = input$tipo),
-               ptTitle == "World",
+               ptCode == 0,
                yr == as.character(input$ano),
                rtTitle == input$pais) %>%
-        group_by(cmdCode) %>% summarise(Mercadoria = first(cmdDescEPt),
+        group_by(cmdCode) %>% summarise(Mercadoria = first(cmdDescE),
                                         Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
         arrange(desc(Valor)) %>%
         ungroup() %>% mutate(soma_acu = cumsum(Valor), percentual = soma_acu*100/sum(Valor))
@@ -224,8 +235,32 @@ shinyServer(
         theme_bw() +
         scale_x_date("") +
         labs(y = etiqueta)
+      ggplotly()
     })
       
+    output$graf_SMN <- renderPlotly({
+      ggplot(SMN, aes(Data, Taxa)) +
+        geom_line(group = 1, col = "darkgreen", size =2) +
+        geom_smooth() +
+        theme_bw() +
+        scale_x_date("") +
+        labs(y = "Salário Mínimo Nominal / Salário Mínimo Necessário")
+      ggplotly()
+    })
+    
+    
+    output$graf_concen <- renderPlotly({
+      etiqueta <- switch(input$concen.var,
+                         'RC4' = "Participação dos 4 maiores bancos (%)",
+                         'IHH' = "Índice de Herfindahl-Hirschman")
+      dado <- concentracao[concentracao$indice == input$concen.var, ]
+      ggplot(dado, aes(as.Date(Trim.), valor, col = metrica)) +
+        geom_line(size = 2) +
+        theme_bw() +
+        scale_x_date("") +
+        labs(y = etiqueta)
+      ggplotly()
+    })
     
     # Botões para download dos dados dos gráficos 
     output$download.graf1 <- downloadHandler(
@@ -233,7 +268,7 @@ shinyServer(
         paste('data-', Sys.Date(), '.csv', sep='')
       },
       content = function(con) {
-        write.csv(tabela_por_pais, con)
+        write.csv2(tabela_por_pais, con)
       }
     )
     output$download.graf2 <- downloadHandler(
@@ -241,7 +276,7 @@ shinyServer(
         paste('data-', Sys.Date(), '.csv', sep='')
       },
       content = function(con) {
-        write.csv(tabela_por_merc, con)
+        write.csv2(tabela_por_merc, con)
       }
     )
     output$download.graf3 <- downloadHandler(
@@ -249,7 +284,7 @@ shinyServer(
         paste('data-', Sys.Date(), '.csv', sep='')
       },
       content = function(con) {
-        write.csv(precos, con)
+        write.csv2(precos, con)
       }
     )
   }

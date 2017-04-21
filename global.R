@@ -12,7 +12,7 @@ library(plotly)
 library(sp)
 library(leaflet)
 
-base <- readRDS("dados/dados_dfJSON.rds")
+base <- readRDS("dados/comercioAL.RDS")
 precos <- readRDS("dados/precos_commodities.rds")
 capitais <- readRDS("dados/capitais_AL.rds")
 desemprego <- readRDS('dados/desemprego.RDS')
@@ -21,6 +21,8 @@ fronteira <- readRDS('dados/fronteira-agricola.RDS')
 termos_troca <- readRDS("dados/termos_troca.RDS")
 shapes <- readRDS('dados/shapes.RDS')
 reservas <- readRDS('dados/reservas.RDS')
+SMN <- readRDS('dados/sal_min_nec.RDS')
+concentracao <- readRDS('dados/concentracao.RDS')
 
 options(scipen = 9e4)
 
@@ -30,13 +32,13 @@ base$rtTitle <- as.character(base$rtTitle)
 #   group_by(rtTitle, rgDesc, yr) %>% 
 #   summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>% ungroup() %>%
 #   arrange(desc(Valor))
-
-tabela_por_merc <- base %>% 
-  filter(ptTitle == "World") %>%
-  group_by(cmdCode, rgDesc, yr, rtTitle) %>%
-  summarise(Mercadoria = first(cmdDescEPt),
-            Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
-  arrange(desc(Valor))
+# 
+# tabela_por_merc <- base %>% 
+#   filter(ptTitle == "World") %>%
+#   group_by(cmdCode, rgDesc, yr, rtTitle) %>%
+#   summarise(Mercadoria = first(cmdDescEPt),
+#             Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
+#   arrange(desc(Valor))
 
 names(precos)[3] <- 'preco'
 
