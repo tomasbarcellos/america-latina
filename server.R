@@ -259,7 +259,8 @@ shinyServer(
         theme_bw() +
         scale_x_date("") +
         labs(y = etiqueta)
-      ggplotly()
+      ggplotly() %>%
+        layout(legend = list(orientation = 'h'))
     })
     
     # Botões para download dos dados dos gráficos 
