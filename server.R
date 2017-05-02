@@ -25,15 +25,15 @@ shinyServer(
                   etiqueta = paste0(": US$ ", Valor, " Mi")) %>%
         ungroup() 
       por_pais <- por_pais %>% mutate(cor = if (n() <= 2) {
-          rep("#238B45", n())
-        } else {
-          colorQuantile("Greens", por_pais$Valor)(por_pais$Valor)
-        })
+        rep("#238B45", n())
+      } else {
+        colorQuantile("Greens", por_pais$Valor)(por_pais$Valor)
+      })
       
       formas <- sp::merge(shapes, por_pais)
-
+      
       formas$etiqueta[is.na(formas$Valor)] <- ": Sem informações"
-
+      
       formas <- subset(formas, formas$rtTitle %in% input$quant)
       
       formas %>% leaflet() %>%
@@ -127,8 +127,8 @@ shinyServer(
       
       graf_capitais <- ggplot(data = capitais %>% filter(variavel == var,
                                                          pais %in% input$paises.capitais #seletor$pais[paises.capitais]
-                                                         ),
-                              aes(x = ano , y = valor, col = reorder(pais, valor))) +
+      ),
+      aes(x = ano , y = valor, col = reorder(pais, valor))) +
         geom_line(size = 2) +
         theme_bw() +
         scale_color_discrete() +
@@ -202,29 +202,20 @@ shinyServer(
     })
     
     # Grafico expansao agricola
-    output$graf_fronteira <- renderPlotly({
-    vertical <- switch(input$var.fronteira,
-                       "plantada" = "Hectares",
-                       "colhida" = "Hectares",
-                       "quantidade" = "Toneladas",
-                       "valor" = "Milhares de R$")
-      
-    dado_fronteira <- fronteira %>% filter(ano %in% input$periodo.fronteira[1]:input$periodo.fronteira[2])
-    dado_fronteira <- dado_fronteira[ , c("ano", input$var.fronteira, "cultura")]
-    names(dado_fronteira)[2] <- "y"
-    graf_front <- ggplot(dado_fronteira, aes(ano, y, col = cultura)) +
-      geom_path(size = 2) + 
-      theme_bw() +
-      labs(y = vertical)
-    
-    ggplotly(graf_front) %>%
-      layout(legend = list(orientation = 'h'))
+    output$graf_fronteira <- renderChart2({
+      h1 <- fronteira %>% filter(Produto == input$var.fronteira,
+                                    País %in% input$paises.fronteira,
+                                    Ano > input$periodo.fronteira[1],
+                                    Ano < input$periodo.fronteira[2]) %>% 
+        hPlot(data = ., x = "Ano", y = "Valor",
+              type = "line", group = "País")
+      h1
     })
     
     output$graf_reservas <- renderPlotly({
       etiqueta <- if (input$var.reservas == 'custo') {
         "Custo (milhões de R$ correntes)"
-        } else "Custo (% do PIB)"
+      } else "Custo (% do PIB)"
       
       dado <- reservas %>%
         filter(data > as.Date(as.character(input$periodo.reservas[1]), format = "%Y"),
@@ -237,7 +228,7 @@ shinyServer(
         labs(y = etiqueta)
       ggplotly()
     })
-      
+    
     output$graf_SMN <- renderPlotly({
       ggplot(SMN, aes(Data, Taxa)) +
         geom_line(group = 1, col = "darkgreen", size =2) +

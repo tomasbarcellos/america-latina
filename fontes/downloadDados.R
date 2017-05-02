@@ -332,4 +332,16 @@ concentracao <- bind_rows(IHH, RC4) %>%
 
 saveRDS(concentracao, 'dados/concentracao.RDS')
 
+#########################
+## Fronteira agrpicola ##
+#########################
 
+dado <- read.csv('FAOSTAT_data_4-25-2017.csv',
+                 stringsAsFactors = FALSE, encoding = 'win-1252')
+dado <- dado[, -c(1, 2, 13, 14)]
+
+names(dado) <- c("ISO3", "País", "Cod_Elemento", "Elemento",
+                 "Cod_Produto", "Produto", "Cod_Ano", "Ano",
+                 "Unidade", "Valor")
+dado <- filter(dado, Produto %in% c("Superficie agrícola", "Praderas y pastos permanentes"))
+saveRDS(dado, 'dados/fronteira_agri_AL.RDS')
