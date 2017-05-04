@@ -48,28 +48,6 @@ shinyServer(
       # dput(por_pais[1:10, 1:5])
     })
     
-    # output$graf1 <- renderPlotly({
-    #   
-    #   por_pais <- base %>% 
-    #     filter(grepl(x = rgCode, pattern = input$tipo),
-    #            ptTitle == "World",
-    #            yr == as.character(input$ano),
-    #            rtTitle %in% input$quant) %>%
-    #     group_by(rtTitle) %>% summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>% ungroup() %>%
-    #     arrange(desc(Valor))
-    #   
-    #   graf_pais <- ggplot(data = por_pais, aes(x = reorder(rtTitle, Valor), y = Valor)) +
-    #     geom_bar(stat = 'identity', fill = 'indianred', alpha = 0.9) +
-    #     geom_text(aes(label = format(x = Valor, decimal.mark = ",")),
-    #               hjust = 5.1, col = 'black', size = 6) +
-    #     guides(fill = 'none') +
-    #     theme_bw(base_size = 14) +
-    #     theme(axis.text.y = element_text(size = 9, face = 'bold', hjust = 1)) +
-    #     labs(x = '', y = "Bilhoes de US$", fill = '') 
-    #   
-    #   ggplotly(graf_pais)
-    # })
-    
     # Balança comercial detalhada
     output$titulo2 <- renderText(paste(input$tipo,"de", input$pais, "\nem", input$ano))
     
@@ -205,8 +183,8 @@ shinyServer(
     output$graf_fronteira <- renderChart2({
       h1 <- fronteira %>% filter(Produto == input$var.fronteira,
                                     País %in% input$paises.fronteira,
-                                    Ano > input$periodo.fronteira[1],
-                                    Ano < input$periodo.fronteira[2]) %>% 
+                                    Ano >= input$periodo.fronteira[1],
+                                    Ano <= input$periodo.fronteira[2]) %>% 
         hPlot(data = ., x = "Ano", y = "Valor",
               type = "line", group = "País")
       h1

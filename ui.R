@@ -127,9 +127,7 @@ shinyUI(dashboardPage(skin = "green",
                # fluidRow(
                #))
         )
-      )
-      
-      ),
+      )),
       #####
       tabPanel("Termos de troca", fluidRow(
         column(4,
@@ -271,8 +269,8 @@ shinyUI(dashboardPage(skin = "green",
              ),
              box(width = "100%",
                  selectInput("var.fronteira", "Escolha uma variável: ",
-                             choices = list("Área plantada (ha)" =  "Superficie agrícola",
-                                            "Área para pasto (ha)" = "Praderas y pastos permanentes"))
+                             choices = list("Área plantada (milhares de ha)" =  "Superficie agrícola",
+                                            "Área para pasto (milhares de ha)" = "Praderas y pastos permanentes"))
              ),
              box(width = "100%",
                  sliderInput("periodo.fronteira", label = "Período",

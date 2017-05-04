@@ -1,0 +1,269 @@
+---
+title: "Observatório Latino-Americano"
+output: 
+  flexdashboard::flex_dashboard:
+  social: c("twitter", "facebook", "google-plus", "linkedin", "pinterest")
+  source_code: embed
+  logo: "www/logo-mini.png"
+  theme: "bootstrap"
+runtime: shiny
+---
+
+<meta charset="utf-8">
+  
+```{r global, include=FALSE}
+library(shiny)
+library(shinydashboard)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+library(plotly)
+library(sp)
+library(leaflet)
+library(rCharts)
+
+base <- readRDS("dados/comercioAL.RDS")
+precos <- readRDS("dados/precos_commodities.rds")
+capitais <- readRDS("dados/capitais_AL.rds")
+desemprego <- readRDS('dados/desemprego.RDS')
+greves <- readRDS('dados/greves.RDS')
+fronteira <- readRDS('dados/fronteira_agri_AL.RDS')
+termos_troca <- readRDS("dados/termos_troca.RDS")
+shapes <- readRDS('dados/shapes.RDS')
+reservas <- readRDS('dados/reservas.RDS')
+SMN <- readRDS('dados/sal_min_nec.RDS')
+concentracao <- readRDS('dados/concentracao.RDS')
+
+options(scipen = 9e4)
+base$rtTitle <- as.character(base$rtTitle)
+names(precos)[3] <- 'preco'
+```
+
+Início
+=======================================================================
+  
+```{r, include=FALSE}
+# UI function
+worldPhonesUI <- function(id) {
+  # fillCol(height = 600, flex = c(NA, 1),
+  fluidPage(
+          fluidRow(
+            column(6, box(title = "", status = "warning", width = "100%", align = "center",
+                          img(src = 'www/iela_portal_2015_logos_ola.png'))),
+            column(6, box(title = "", status = "primary", width = "100%",
+                          h3("Painel do Observatório Latino-Americano (OLA)"),
+                          p("Um texto bem legal explicando o que é este painel e como usá-lo.")))
+          ))
+}
+
+# Server function
+worldPhones <- function(input, output, session) renderPlot("")
+```
+
+```{r}
+# Include the module
+worldPhonesUI("phones")
+callModule(worldPhones, "phones")
+```
+
+Mapa
+=======================================================================
+  
+```{r}
+shinyApp(
+  ui = fluidPage(fluidRow(
+    column(5,
+           box("Países", width = "100%",
+               checkboxGroupInput("quant", label = "Escolha os países",
+                                  choices = list("Argentina", "Bolivia (Plurinational State of)",
+                                                 "Brazil", "Chile", "Colombia", "Dominican Rep.",
+                                                 "Ecuador", "El Salvador", "Guatemala", "Guinea",
+                                                 "Honduras", "Jamaica", "Mexico", "Nicaragua",
+                                                 "Panama", "Paraguay", "Peru", "Uruguay", "Venezuela"),
+                                  selected = c("Argentina", "Bolivia (Plurinational State of)",
+                                               "Brazil", "Chile", "Colombia", "Dominican Rep.",
+                                               "Ecuador", "El Salvador", "Guatemala", "Guinea",
+                                               "Honduras", "Jamaica", "Mexico", "Nicaragua",
+                                               "Panama", "Paraguay", "Peru", "Uruguay", "Venezuela"),
+                                  inline = TRUE)
+           ),
+           box("", width = "100%",
+               selectInput("tipo", label = "Escolha  a categoria do comercio exterior", 
+                           choices = list("Exportação" = '[2|3]',
+                                          "Importação" = '[1|4]',
+                                          "Exportação e Importação (corrente de comércio)" = '[1-4]'),
+                           selected = "Exportação"),
+               selectInput("mapa_merc", "Mercadoria: ", 
+                           choices = c("Total", as.character(unique(base$cmdDescE))),
+                           selected = 2),
+               sliderInput("ano", label = "Escolha o ano",
+                           min = 2007, max = 2016, value = 2016)
+           )
+    ),
+    column(7, box(title = "Comércio exterior por país", width = "100%",
+                  leafletOutput("mapa"),
+                  p("Fonte:", a("Estatísticas de comércio da ONU", target = "_blank",
+                                href = "https://comtrade.un.org/data/"))
+    ))
+  )),
+server = function(input, output) {
+    output$mapa <- renderLeaflet({
+      if (input$mapa_merc == "Total") {
+        mercadoria <- TRUE
+      } else {
+        mercadoria <- base$cmdDescE == input$mapa_merc
+      }
+      
+      por_pais <- base %>% 
+        filter(grepl(x = rgCode, pattern = input$tipo),
+               ptTitle == "World",
+               rtTitle %in% input$quant,
+               yr == as.character(input$ano),
+               mercadoria) %>%
+        group_by(rtTitle) %>%
+        summarise(ISO3 =  first(rt3ISO),
+                  Valor = round(sum(TradeValue)/10^6, digits = 1),
+                  etiqueta = paste0(": US$ ", Valor, " Mi")) %>%
+        ungroup() 
+      por_pais <- por_pais %>% mutate(cor = if (n() <= 2) {
+        rep("#238B45", n())
+      } else {
+        colorQuantile("Greens", por_pais$Valor)(por_pais$Valor)
+      })
+      
+      formas <- sp::merge(shapes, por_pais)
+      
+      formas$etiqueta[is.na(formas$Valor)] <- ": Sem informações"
+      
+      formas <- subset(formas, formas$rtTitle %in% input$quant)
+      
+      formas %>% leaflet() %>%
+        addProviderTiles(providers$OpenMapSurfer) %>%
+        addPolygons(color = "#444444", weight = 1, smoothFactor = 0.2,
+                    opacity = 1.0, fillOpacity = 0.9,
+                    label = ~paste0(NAME, etiqueta),
+                    fillColor = ~cor,
+                    highlightOptions = highlightOptions(color = "white", weight = 2,
+                                                        bringToFront = TRUE)) %>%
+        setView(lng = -75, lat = -15, zoom = 2)
+      # dput(por_pais[1:10, 1:5])
+    })
+  }#,
+  # options = list(height = 600)
+)
+```
+
+Detalhamento
+=======================================================================
+  
+```{r}
+shinyApp(
+  ui = fluidPage(fluidRow(
+    column(4, 
+               box("Detalhamento da balança comercial", width = "100%",
+                   selectInput("pais",
+                               label = "Deseja obter informacoes sobre qual pais?", 
+                               choices = list("Argentina", "Bolivia (Plurinational State of)",
+                                              "Brazil", "Chile", "Colombia", "Dominican Rep.",
+                                              "Ecuador", "El Salvador", "Guatemala", "Guinea",
+                                              "Honduras", "Jamaica", "Mexico", "Nicaragua",
+                                              "Panama", "Paraguay", "Peru", "Uruguay", "Venezuela"),
+                               selected = "Brazil"),
+                   selectInput("tipo", label = "Escolha  a categoria do comercio exterior", 
+                           choices = list("Exportação" = '[2|3]',
+                                          "Importação" = '[1|4]',
+                                          "Exportação e Importação (corrente de comércio)" = '[1-4]')),
+                   sliderInput("qt_merc", label = "Mostrar mercadorias que acumulem quantos por cento?",
+                               min = 40, max = 85, value = 50),
+                   sliderInput("ano", label = "Escolha o ano",
+                               min = 2007, max = 2016, value = 2016))),
+    column(8,
+           box(title = "Balança comercial", width = "100%",
+               plotlyOutput("graf2"),
+               p("Fonte:", a("Estatísticas de comércio da ONU", target = "_blank",
+                             href = "https://comtrade.un.org/data/"))
+           ))
+  )),
+  server = function(input, output) {
+    output$graf2 <- renderPlotly({
+      
+      por_merc <- base %>% 
+        filter(grepl(x = rgCode, pattern = input$tipo),
+               ptCode == 0,
+               yr == as.character(input$ano),
+               rtTitle == input$pais) %>%
+        group_by(cmdCode) %>% summarise(Mercadoria = first(cmdDescE),
+                                        Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
+        arrange(desc(Valor)) %>%
+        ungroup() %>% mutate(soma_acu = cumsum(Valor), percentual = soma_acu*100/sum(Valor))
+      
+      graf_merc <- ggplot(data = por_merc %>% filter(percentual <= input$qt_merc), aes(x = reorder(Mercadoria, Valor), y = Valor)) +
+        geom_bar(stat = 'identity', fill = 'indianred', alpha = 0.9) +
+        geom_text(aes(label = format(x = Valor, decimal.mark = ",")),
+                  hjust = -4.1, col = 'black', size = 6) +
+        theme_bw(base_size = 5) +
+        theme(axis.text.y = element_text(size = 4, face = 'bold')) +
+        labs(x = " ", y = "Volume de comercio, em bilhoes de US$") +
+        coord_flip()
+      
+      ggplotly(graf_merc)
+    })
+  }
+)
+```
+
+Detalhamento
+=======================================================================
+  
+```{r}
+shinyApp(ui = fluidPage(fluidRow(
+        column(4, 
+               box(width = "100%",
+                   sliderInput("periodo", label = "Visualizar os precos entre:",
+                               min = 1960, max = 2015, value = c(1995,2015))
+               ),
+               box(width = "100%",
+                   checkboxGroupInput("mercadoria", label = "Escolha o(s) índice(s):", 
+                                      choices = list(`Petróleo WTI` = 'CRUDE_WTI',
+                                                     `Agricultura` = 'IAGRICULTURE',
+                                                     `Bebidas` = 'IBEVERAGES', 
+                                                     `Energia` = 'IENERGY',
+                                                     `Óleos e gordutas` = 'IFATS_OILS',
+                                                     `Fertilizantes` = 'IFERTILIZERS',
+                                                     `Comida` = 'IFOOD',
+                                                     `Grãos` = 'IGRAINS',
+                                                     `Metais e minerais` = 'IMETMIN',
+                                                     `Não combustíveis` = 'INONFUEL',
+                                                     `Minério de ferro` = 'IRON_ORE',
+                                                     `Madeira` = 'ITIMBER',
+                                                     `Outros alimentos` = 'IOTHERFOOD'),
+                                      selected = c('IAGRICULTURE', 'IGRAINS'),
+                                      inline = TRUE)
+               )),
+        column(8, box(title = "Preços", width = "100%",
+                      # p(actionLink("precos_filtros", "Filtros"), align = 'right'),
+                      # downloadLink('download.graf3', "Clique aqui para baixar os dados deste grafico!"),
+                      plotlyOutput("graf3", height = '100%'), 
+                      p("Fonte:", a("Banco Mundial", target = "_blank",
+                                    href = "http://siteresources.worldbank.org/INTPROSPECTS/Resources/GemDataEXTR.zip")))#,
+               # shinyBS::bsModal("precos_modal", "Filtros", "precos_filtros", size = 'large',
+               # fluidRow(
+               #))
+        )
+      )),
+         server = function(input, output) {
+           output$graf3 <- renderPlotly({
+      precos.dim <- precos %>% filter(Mercadoria %in% input$mercadoria, 
+                                      Ano >= input$periodo[1], Ano <= input$periodo[2])
+      graf_precos <- ggplot(precos.dim, aes(x = Ano, y = preco)) + 
+        geom_line(data = precos.dim,
+                  aes(col = Mercadoria), alpha = 0.9, size = 2) +
+        theme_bw() +
+        # scale_fill_discrete() +
+        labs(x = " ", y = "Índice (2010 = 100)")
+      
+      ggplotly(graf_precos) %>%
+        layout(legend = list(orientation = 'h'))
+    })
+         })
