@@ -51,7 +51,8 @@ shinyUI(dashboardPage(skin = "green",
                       # p(actionLink("comex_filtros", "Filtros"), align = 'right'),
                       # downloadLink('download.graf1', "Clique aqui para baixar os dados deste grafico!"),
                       leafletOutput("mapa"),
-                      p("Fonte:", a("Estatísticas de comércio da ONU", href = "https://comtrade.un.org/data/"))
+                      p("Fonte:", a("Estatísticas de comércio da ONU", target = "_blank",
+                                    href = "https://comtrade.un.org/data/"))
                       # shinyBS::bsModal("comex_modal", "Filtros", "comex_filtros", size = 'large',
                       #                  fluidRow(
                       #                    box(width = 6#,
@@ -82,7 +83,8 @@ shinyUI(dashboardPage(skin = "green",
                    # p(actionLink("comex_filtros2", "Filtros"), align = 'right'),
                    # downloadLink('download.graf2', "Clique aqui para baixar os dados deste grafico!"),
                    plotlyOutput("graf2"),
-                   p("Fonte:", a("Estatísticas de comércio da ONU", href = "https://comtrade.un.org/data/"))
+                   p("Fonte:", a("Estatísticas de comércio da ONU", target = "_blank",
+                                 href = "https://comtrade.un.org/data/"))
                    # shinyBS::bsModal("comex_modal2", "Filtros", "comex_filtros2", size = 'large',
                    #                  fluidRow(
                    #                    ))
@@ -119,7 +121,8 @@ shinyUI(dashboardPage(skin = "green",
                       # p(actionLink("precos_filtros", "Filtros"), align = 'right'),
                       # downloadLink('download.graf3', "Clique aqui para baixar os dados deste grafico!"),
                       plotlyOutput("graf3", height = '100%'), 
-                      p("Fonte:", a("Banco Mundial", href = "http://siteresources.worldbank.org/INTPROSPECTS/Resources/GemDataEXTR.zip")))#,
+                      p("Fonte:", a("Banco Mundial", target = "_blank",
+                                    href = "http://siteresources.worldbank.org/INTPROSPECTS/Resources/GemDataEXTR.zip")))#,
                # shinyBS::bsModal("precos_modal", "Filtros", "precos_filtros", size = 'large',
                # fluidRow(
                #))
@@ -149,7 +152,8 @@ shinyUI(dashboardPage(skin = "green",
         column(8, box(title = "Termos de trocas", width = "100%",
                       # p(actionLink("termos_filtros", "Filtros"), align = 'right'),
                       plotlyOutput("graf_termos", height = '100%'),
-                      p("Fonte:", a("Comissão Econômica para a América Latina - CEPAL", href = "http://estadisticas.cepal.org/cepalstat/WEB_CEPALSTAT/Portada.asp?")))
+                      p("Fonte:", a("Comissão Econômica para a América Latina - CEPAL", target = "_blank",
+                                    href = "http://estadisticas.cepal.org/cepalstat/WEB_CEPALSTAT/Portada.asp?")))
                # shinyBS::bsModal("termos_modal", "Filtros", "termos_filtros", size = 'large', 
                #                       )
         )
@@ -176,7 +180,8 @@ shinyUI(dashboardPage(skin = "green",
                    # p(actionLink("capitais_filtros", "Filtros"), align = 'right'),
                    # downloadLink('download.graf2', "Clique aqui para baixar os dados deste grafico!"),
                    plotlyOutput("graf4", height = '100%'),
-                   p("Fonte:", a("Comissão Econômica para a América Latina - CEPAL", href = "http://estadisticas.cepal.org/cepalstat/WEB_CEPALSTAT/Portada.asp?")))
+                   p("Fonte:", a("Comissão Econômica para a América Latina - CEPAL", target = "_blank",
+                                 href = "http://estadisticas.cepal.org/cepalstat/WEB_CEPALSTAT/Portada.asp?")))
                
                # shinyBS::bsModal("capitais_modal", "Filtros", "capitais_filtros", size = 'large',
                #                  )
@@ -209,7 +214,8 @@ shinyUI(dashboardPage(skin = "green",
                box(title = "Desemprego", width = "100%",
                    # p(actionLink("desemprego_filtros", "Filtros"), align = 'right'),
                    plotlyOutput("graf_desemprego", height = '100%'),
-                   p("Fonte:", a("Comissão Econômica para a América Latina - CEPAL", href = "http://estadisticas.cepal.org/cepalstat/WEB_CEPALSTAT/Portada.asp?")))
+                   p("Fonte:", a("Comissão Econômica para a América Latina - CEPAL", target = "_blank",
+                                 href = "http://estadisticas.cepal.org/cepalstat/WEB_CEPALSTAT/Portada.asp?")))
                # shinyBS::bsModal("desemprego_modal", "Filtros", "desemprego_filtros", size = 'large',
                # )
         )
@@ -242,7 +248,8 @@ shinyUI(dashboardPage(skin = "green",
              box(title = "Greves", width = "100%",
                  # p(actionLink("greves_filtros", "Filtros"), align = 'right'),
                  plotlyOutput("graf_greves", height = '100%'),
-                 p("Fonte:", a("Organização Internacional do Trabalho - OIT", href = "http://www.ilo.org/ilostat/faces/wcnav_defaultSelection?")))
+                 p("Fonte:", a("Organização Internacional do Trabalho - OIT", target = "_blank",
+                               href = "http://www.ilo.org/ilostat/faces/wcnav_defaultSelection?")))
              # shinyBS::bsModal("greves_modal", "Filtros", "greves_filtros", size = 'large',
              #                  )
       )
@@ -274,7 +281,8 @@ shinyUI(dashboardPage(skin = "green",
       column(8, box(title = "Indicadores de uso da terra", width = "100%", 
                     # p(actionLink("fronteira_filtros", "Filtros"), align = 'right'),
                     chartOutput("graf_fronteira", 'highcharts'),
-                    p("Fonte:", a("Organização das Nações Unidade para a Alimentação e Agricultura - FAO", href = "http://www.fao.org/statistics/en/")))
+                    p("Fonte:", a("Organização das Nações Unidade para a Alimentação e Agricultura - FAO", target = "_blank",
+                                  href = "http://www.fao.org/statistics/en/")))
              # shinyBS::bsModal("fronteira_modal", "Filtros", "fronteira_filtros", size = 'large',
              #       )
       )
