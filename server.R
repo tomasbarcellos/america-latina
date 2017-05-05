@@ -118,76 +118,98 @@ shinyServer(
     })
     
     # Termos de troca
-    output$graf_termos <- renderPlotly({
-      dado <- termos_troca %>% 
-        filter(Rubro == input$termos_var,
-               País %in% input$termos_pais)
-      
-      ggplot(dado, aes(x = as.numeric(Años_desc), 
-                       y = valor, col = País_desc)) +
-        geom_line(size = 2) +
-        theme_bw() +
-        # scale_x_discrete() +
-        labs(x = " ", y = "Índice (2010 = 100)")
-      
-      ggplotly() %>%
-        layout(legend = list(orientation = 'h'))
+    # output$graf_termos <- renderPlotly({
+    #   dado <- termos_troca %>% 
+    #     filter(Rubro == input$termos_var,
+    #            País %in% input$termos_pais)
+    #   
+    #   ggplot(dado, aes(x = as.numeric(Años_desc), 
+    #                    y = valor, col = País_desc)) +
+    #     geom_line(size = 2) +
+    #     theme_bw() +
+    #     # scale_x_discrete() +
+    #     labs(x = " ", y = "Índice (2010 = 100)")
+    #   
+    #   ggplotly() %>%
+    #     layout(legend = list(orientation = 'h'))
+    # })
+    
+    output$graf_termos <- renderChart2({
+        termos_troca %>%
+          filter(Rubro == input$termos_var,
+                 País %in% input$termos_pais) %>% 
+          mutate(Ano = as.numeric(Años_desc),
+                 País = País_desc, `Índice (2010 = 100)` = round(valor, 1)) %>% 
+        hPlot(data = ., x = "Ano", y = "Índice (2010 = 100)",
+              type = "line", group = "País")
     })
     
-    
     # Gráfico desemprego
-    output$graf_desemprego <- renderPlotly({
-      dado <- desemprego %>% filter(Sexo == input$genero.desemprego,
-                                    between(Años_desc, input$periodo.desemprego[1],
-                                            input$periodo.desemprego[2]),
-                                    País_desc %in% input$paises.desemprego,
-                                    `Escolaridad (EH)` == 1427)
-      graf_des <- ggplot(dado, aes(x = Años_desc, y = valor, col = País_desc)) +
-        geom_line(size = 2) +
-        theme_bw() +
-        # scale_x_discrete() +
-        labs(x = " ", y = "Taxa de desemprego (%)")
-      
-      ggplotly(graf_des)  %>%
-        layout(legend = list(orientation = 'h'))
+    output$graf_desemprego <- renderChart2({
+      desemprego %>% filter(Sexo == input$genero.desemprego,
+                            between(Años_desc, input$periodo.desemprego[1],
+                                    input$periodo.desemprego[2]),
+                            País_desc %in% input$paises.desemprego,
+                            `Escolaridad (EH)` == 1427) %>%
+        mutate(Ano = as.numeric(Años_desc),
+               País = País_desc, `Taxa de desemprego (%)` = valor) %>% 
+        hPlot(data = ., x = "Ano", y = "Taxa de desemprego (%)",
+              type = "line", group = "País")
     })
     
     # Gráfico de greves
-    output$graf_greves <- renderPlotly({
+    # output$graf_greves <- renderPlotly({
+    #   vertical <- switch(input$greve.indicador,
+    #                      "Number of strikes and lockouts by economic activity null" = "Número de greves",
+    #                      "Days not worked due to strikes and lockouts by economic activity null" = "Dias nao trabalhados (em razão de greves)",
+    #                      "Workers involved in strikes and lockouts by economic activity (thousands)" = "Trabalhadores envolvidos em greves",
+    #                      "Days not worked per 1000 workers due to strikes and lockouts by economic activity null" = "Dias não trabalhados (em razão de greves)\n por 1000 trabalhadores")
+    #   
+    #   dado_greve <- greves %>%
+    #     filter(indicator.label == input$greve.indicador,
+    #            ref_area.label %in% input$greve.paises,
+    #            time > input$greve.anos[1],
+    #            time < input$greve.anos[2]) %>%
+    #     group_by(ref_area.label, time) %>%
+    #     summarise(Pais = first(ref_area.label),
+    #               ano = first(time),
+    #               dado = sum(obs_value))
+    #   
+    #   graf_greve <- ggplot(dado_greve,
+    #                        aes(ano, dado, color = Pais)) +
+    #     geom_line(size = 2) + 
+    #     theme_bw() +
+    #     labs(x = " ", y = vertical)
+    #   ggplotly(graf_greve) %>%
+    #     layout(legend = list(orientation = 'h'))
+    # })
+    
+    output$graf_greves <- renderChart2({
       vertical <- switch(input$greve.indicador,
                          "Number of strikes and lockouts by economic activity null" = "Número de greves",
                          "Days not worked due to strikes and lockouts by economic activity null" = "Dias nao trabalhados (em razão de greves)",
                          "Workers involved in strikes and lockouts by economic activity (thousands)" = "Trabalhadores envolvidos em greves",
                          "Days not worked per 1000 workers due to strikes and lockouts by economic activity null" = "Dias não trabalhados (em razão de greves)\n por 1000 trabalhadores")
       
-      dado_greve <- greves %>%
-        filter(indicator.label == input$greve.indicador,
-               ref_area.label %in% input$greve.paises,
-               time > input$greve.anos[1],
-               time < input$greve.anos[2]) %>%
+      greves %>% filter(indicator.label == input$greve.indicador,
+                        ref_area.label %in% input$greve.paises,
+                        between(time, input$greve.anos[1], input$greve.anos[2])) %>%
         group_by(ref_area.label, time) %>%
-        summarise(Pais = first(ref_area.label),
-                  ano = first(time),
-                  dado = sum(obs_value))
-      
-      graf_greve <- ggplot(dado_greve,
-                           aes(ano, dado, color = Pais)) +
-        geom_line(size = 2) + 
-        theme_bw() +
-        labs(x = " ", y = vertical)
-      ggplotly(graf_greve) %>%
-        layout(legend = list(orientation = 'h'))
+        summarise(País = first(ref_area.label),
+                  Ano = first(time),
+                  Valor = sum(obs_value)) %>% 
+        hPlot(data = ., x = "Ano", y = "Valor",
+              type = "line", group = "País", title = vertical)
     })
-    
     # Grafico expansao agricola
     output$graf_fronteira <- renderChart2({
-      h1 <- fronteira %>% filter(Produto == input$var.fronteira,
-                                    País %in% input$paises.fronteira,
-                                    Ano >= input$periodo.fronteira[1],
-                                    Ano <= input$periodo.fronteira[2]) %>% 
+      graf <- fronteira %>% filter(Produto == input$var.fronteira,
+                           País %in% input$paises.fronteira,
+                           between(Ano, input$periodo.fronteira[1],
+                                   input$periodo.fronteira[2])) %>% 
         hPlot(data = ., x = "Ano", y = "Valor",
               type = "line", group = "País")
-      h1
+      graf
     })
     
     output$graf_reservas <- renderPlotly({

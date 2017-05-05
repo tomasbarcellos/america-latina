@@ -1,15 +1,12 @@
 # ui.R
 
-shinyUI(dashboardPage(skin = "green",
-  dashboardHeader(title = "Observatório Latino-Americano", titleWidth = 350),
-  
-  #####
-  ## Sidebar content
+shinyUI(dashboardPage(title = "Observatório Latino-Americano",
+  dashboardHeader(disable = TRUE),
   dashboardSidebar(disable = TRUE),
   
-  ## Body content
   dashboardBody(
-    navbarPage("", collapsible = TRUE,
+    tags$header(""),
+    navbarPage('Observatório Latino-Americano', collapsible = TRUE, id = "barra", position = 'static-top',
       tabPanel("Início", fluidRow(
         column(6, box(title = "", status = "warning", width = "100%", align = "center",
                       img(src = 'iela_portal_2015_logos_ola.png'))),
@@ -17,7 +14,7 @@ shinyUI(dashboardPage(skin = "green",
                       h3("Painel do Observatório Latino-Americano (OLA)"),
                       p("Um texto bem legal explicando o que é este painel e como usá-lo.")))
       )),
-      navbarMenu("Comércio exterior",
+      tabPanel("Mercado Mundial", tabBox(width = 12,
       tabPanel("Toda região", fluidRow(
         column(5,
                box("Países", width = "100%",
@@ -43,25 +40,14 @@ shinyUI(dashboardPage(skin = "green",
                    selectInput("mapa_merc", "Mercadoria: ", 
                                choices = c("Total", as.character(unique(base$cmdDescE))),
                                selected = 2),
-                   sliderInput("ano", label = "Escolha o ano",
+                   sliderInput("ano", label = "Escolha o ano", sep = "", 
                                min = 2007, max = 2016, value = 2016)
                )
         ),
         column(7, box(title = "Comércio exterior por país", width = "100%",
-                      # p(actionLink("comex_filtros", "Filtros"), align = 'right'),
-                      # downloadLink('download.graf1', "Clique aqui para baixar os dados deste grafico!"),
                       leafletOutput("mapa"),
                       p("Fonte:", a("Estatísticas de comércio da ONU", target = "_blank",
                                     href = "https://comtrade.un.org/data/"))
-                      # shinyBS::bsModal("comex_modal", "Filtros", "comex_filtros", size = 'large',
-                      #                  fluidRow(
-                      #                    box(width = 6#,
-                      #                    ),
-                      #                    box(width = 6#,
-                      #                        
-                      #                    )
-                      #                  )
-                      # )
         ))
       )),
       tabPanel("Detalhamento", fluidRow(
@@ -75,28 +61,21 @@ shinyUI(dashboardPage(skin = "green",
                                               "Honduras", "Jamaica", "Mexico", "Nicaragua",
                                               "Panama", "Paraguay", "Peru", "Uruguay", "Venezuela"),
                                selected = "Brazil"),
-                   # column(6,
                    sliderInput("qt_merc", label = "Mostrar mercadorias que acumulem quantos por cento?",
-                               min = 40, max = 85, value = 50))),#), 
+                               min = 40, max = 85, value = 50, sep = ""))), 
         column(8,
                box(title = "Balança comercial", width = "100%",
-                   # p(actionLink("comex_filtros2", "Filtros"), align = 'right'),
-                   # downloadLink('download.graf2', "Clique aqui para baixar os dados deste grafico!"),
                    plotlyOutput("graf2"),
                    p("Fonte:", a("Estatísticas de comércio da ONU", target = "_blank",
                                  href = "https://comtrade.un.org/data/"))
-                   # shinyBS::bsModal("comex_modal2", "Filtros", "comex_filtros2", size = 'large',
-                   #                  fluidRow(
-                   #                    ))
                ))
-      ))
-      ), navbarMenu("Mercado mundial",
+      )),
 
       #####
       tabPanel("Preços das principais mercadorias", fluidRow(
         column(4, 
                box(width = "100%",
-                   sliderInput("periodo", label = "Visualizar os precos entre:",
+                   sliderInput("periodo", label = "Visualizar os precos entre:", sep = "",
                                min = 1960, max = 2015, value = c(1995,2015))
                ),
                box(width = "100%",
@@ -118,14 +97,9 @@ shinyUI(dashboardPage(skin = "green",
                                       inline = TRUE)
                )),
         column(8, box(title = "Preços", width = "100%",
-                      # p(actionLink("precos_filtros", "Filtros"), align = 'right'),
-                      # downloadLink('download.graf3', "Clique aqui para baixar os dados deste grafico!"),
                       plotlyOutput("graf3", height = '100%'), 
                       p("Fonte:", a("Banco Mundial", target = "_blank",
-                                    href = "http://siteresources.worldbank.org/INTPROSPECTS/Resources/GemDataEXTR.zip")))#,
-               # shinyBS::bsModal("precos_modal", "Filtros", "precos_filtros", size = 'large',
-               # fluidRow(
-               #))
+                                    href = "http://siteresources.worldbank.org/INTPROSPECTS/Resources/GemDataEXTR.zip")))
         )
       )),
       #####
@@ -148,15 +122,13 @@ shinyUI(dashboardPage(skin = "green",
                )
         ), 
         column(8, box(title = "Termos de trocas", width = "100%",
-                      # p(actionLink("termos_filtros", "Filtros"), align = 'right'),
-                      plotlyOutput("graf_termos", height = '100%'),
+                      HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
+                      chartOutput("graf_termos", "highcharts"),
                       p("Fonte:", a("Comissão Econômica para a América Latina - CEPAL", target = "_blank",
                                     href = "http://estadisticas.cepal.org/cepalstat/WEB_CEPALSTAT/Portada.asp?")))
-               # shinyBS::bsModal("termos_modal", "Filtros", "termos_filtros", size = 'large', 
-               #                       )
         )
       ))
-      ),
+      )),
       
       #####
       tabPanel("Fluxo de capitais", fluidRow(
@@ -175,18 +147,12 @@ shinyUI(dashboardPage(skin = "green",
         ),
         column(8, 
                box(title = "Balança de capitais", width = "100%",
-                   # p(actionLink("capitais_filtros", "Filtros"), align = 'right'),
-                   # downloadLink('download.graf2', "Clique aqui para baixar os dados deste grafico!"),
                    plotlyOutput("graf4", height = '100%'),
                    p("Fonte:", a("Comissão Econômica para a América Latina - CEPAL", target = "_blank",
                                  href = "http://estadisticas.cepal.org/cepalstat/WEB_CEPALSTAT/Portada.asp?")))
-               
-               # shinyBS::bsModal("capitais_modal", "Filtros", "capitais_filtros", size = 'large',
-               #                  )
         )
-      )), navbarMenu("Classe trabalhadora",
-      
-      #####
+      )),
+      tabPanel("Classe trabalhadora", tabBox(width = 12,
       tabPanel("Desemprego", fluidRow(
         column(4,
                box(width = "100%",
@@ -196,7 +162,7 @@ shinyUI(dashboardPage(skin = "green",
                                               "Feminino" = 266))
                ),
                box(width = "100%",
-                   sliderInput("periodo.desemprego", label = "Período",
+                   sliderInput("periodo.desemprego", label = "Período", sep = "",
                                min = 2005, max = 2015, value = c(2008,2015))
                ),
                box(width = "100%",
@@ -210,12 +176,10 @@ shinyUI(dashboardPage(skin = "green",
         ),
         column(8,
                box(title = "Desemprego", width = "100%",
-                   # p(actionLink("desemprego_filtros", "Filtros"), align = 'right'),
-                   plotlyOutput("graf_desemprego", height = '100%'),
+                   HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
+                   chartOutput("graf_desemprego", 'highcharts'),
                    p("Fonte:", a("Comissão Econômica para a América Latina - CEPAL", target = "_blank",
                                  href = "http://estadisticas.cepal.org/cepalstat/WEB_CEPALSTAT/Portada.asp?")))
-               # shinyBS::bsModal("desemprego_modal", "Filtros", "desemprego_filtros", size = 'large',
-               # )
         )
         
       )),
@@ -231,10 +195,6 @@ shinyUI(dashboardPage(skin = "green",
                              selected = "Number of strikes and lockouts by economic activity null")
              ),
              box(width = "100%",
-                 sliderInput("greve.anos", "Período: ",
-                             min = 1970, max = 2015, value = c(1980, 2015))
-             ),
-             box(width = "100%",
                  checkboxGroupInput("greve.paises", "Países: ",
                                     choices = unique(greves$ref_area.label),
                                     selected = c(Argentina = "Argentina",
@@ -243,16 +203,16 @@ shinyUI(dashboardPage(skin = "green",
              )
       ),
       column(8,
-             box(title = "Greves", width = "100%",
-                 # p(actionLink("greves_filtros", "Filtros"), align = 'right'),
-                 plotlyOutput("graf_greves", height = '100%'),
+             box(title = NULL, width = "100%",
+                 HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
+                 chartOutput("graf_greves", 'highcharts'),
                  p("Fonte:", a("Organização Internacional do Trabalho - OIT", target = "_blank",
-                               href = "http://www.ilo.org/ilostat/faces/wcnav_defaultSelection?")))
-             # shinyBS::bsModal("greves_modal", "Filtros", "greves_filtros", size = 'large',
-             #                  )
+                               href = "http://www.ilo.org/ilostat/faces/wcnav_defaultSelection?")),
+                 sliderInput("greve.anos", "Período: ", sep = "", 
+                             min = 1970, max = 2015, value = c(1980, 2015)))
       )
     ))
-    ),
+    )),
     #####
     # Início da aba 3 - Rentismo
     tabPanel("Fronteira agrícola", fluidRow(
@@ -273,17 +233,15 @@ shinyUI(dashboardPage(skin = "green",
                                             "Área para pasto (milhares de ha)" = "Praderas y pastos permanentes"))
              ),
              box(width = "100%",
-                 sliderInput("periodo.fronteira", label = "Período",
+                 sliderInput("periodo.fronteira", label = "Período", sep = "", 
                              min = 1961, max = 2015, value = c(1990,2015))
              )),
       column(8, box(title = "Indicadores de uso da terra", width = "100%", 
-                    # p(actionLink("fronteira_filtros", "Filtros"), align = 'right'),
+                    HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
                     chartOutput("graf_fronteira", 'highcharts'),
                     p("Fonte:", a("Organização das Nações Unidade para a Alimentação e Agricultura - FAO", target = "_blank",
                                   href = "http://www.fao.org/statistics/en/")))
-             # shinyBS::bsModal("fronteira_modal", "Filtros", "fronteira_filtros", size = 'large',
-             #       )
       )
     ))
-    ))#)
+    ))
 ))
