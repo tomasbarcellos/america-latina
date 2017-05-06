@@ -1,12 +1,25 @@
 # ui.R
 
-shinyUI(dashboardPage(title = "Observatório Latino-Americano",
+shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
   dashboardHeader(disable = TRUE),
   dashboardSidebar(disable = TRUE),
   
   dashboardBody(
-    tags$header(""),
+    HTML('<script src="https://code.jquery.com/jquery-1.11.3.js"></script>'),
+    tags$script(
+      " $(function() {
+          $('nav.navbar').attr('style','background-color: #00a65a;');
+          $('div.navbar-header').attr('style','background-color: #008d4c;');
+          $('span.navbar-brand').attr('style','color: #fff; font-weight: bold');
+          $('li a').attr('style','color: #fff; font-weight: 500');
+       });
+        $( 'nav' ).on('click', function() {
+          $('div.navbar-header').attr('style','background-color: #008d4c;');
+          $('this').attr('style','background-color: #008d4c;');
+       })"
+      ),
     navbarPage('Observatório Latino-Americano', collapsible = TRUE, id = "barra", position = 'static-top',
+      HTML('<img src="logo-mini.png" alt=""/>'),
       tabPanel("Início", fluidRow(
         column(6, box(title = "", status = "warning", width = "100%", align = "center",
                       img(src = 'iela_portal_2015_logos_ola.png'))),
@@ -236,11 +249,12 @@ shinyUI(dashboardPage(title = "Observatório Latino-Americano",
                  sliderInput("periodo.fronteira", label = "Período", sep = "", 
                              min = 1961, max = 2015, value = c(1990,2015))
              )),
-      column(8, box(title = "Indicadores de uso da terra", width = "100%", 
-                    HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
-                    chartOutput("graf_fronteira", 'highcharts'),
-                    p("Fonte:", a("Organização das Nações Unidade para a Alimentação e Agricultura - FAO", target = "_blank",
-                                  href = "http://www.fao.org/statistics/en/")))
+      column(8,
+             box(title = "Indicadores de uso da terra", width = "100%", 
+                 HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
+                 chartOutput("graf_fronteira", 'highcharts'),
+                 p("Fonte:", a("Organização das Nações Unidade para a Alimentação e Agricultura - FAO", target = "_blank",
+                               href = "http://www.fao.org/statistics/en/")))
       )
     ))
     ))
