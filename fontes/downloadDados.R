@@ -75,7 +75,7 @@ get.Comtrade <- function(r, # Area do relatorio. Um numero por pais
                   ,"p=",p,"&" #partner country
                   ,"rg=",rg,"&" #trade flow
                   ,"cc=",cc,"&" #classification code
-                  ,"fmt=",fmt        #Format
+                  ,"fmt=",fmt #Format
   )
   
   cat("Conectando com UNComTrade...\n")
@@ -203,6 +203,17 @@ antigo <- readRDS('dados/comercioAL.RDS')
 novo <- rbind(AL_df, antigo)
 
 saveRDS(novo, file = "dados/comercioAL.RDS")
+
+dic <- fromJSON(file = 'https://comtrade.un.org/data/cache/classificationST.json')
+dic <- do.call("rbind", dic$results) %>% as.data.frame()
+dicionario <- lapply(dic, unlist) %>% as.data.frame(stringsAsFactors = FALSE) %>% 
+  filter(nchar(id) <= 2)
+dicionario_pai <- left_join(dicionario, dicionario[, 1:2], by = c("parent" = "id"))
+dicionario_pai$id <- as.integer(dicionario_pai$id)
+names(dicionario_pai) <- c("id", "id_desc", "pai", "pai_desc")
+comercio_total <- left_join(novo, dicionario_pai, by = c("cmdCode" = "id"))
+
+saveRDS(comercio_total, file = "dados/comercioAL.RDS")
 
 ###########################
 #### Download de dados ####

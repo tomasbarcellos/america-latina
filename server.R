@@ -10,7 +10,7 @@ shinyServer(
       if (input$mapa_merc == "Total") {
         mercadoria <- TRUE
       } else {
-        mercadoria <- base$cmdDescE == input$mapa_merc
+        mercadoria <- base$pai_desc == input$mapa_merc
       }
       
       por_pais <- base %>% 
@@ -45,34 +45,22 @@ shinyServer(
                     highlightOptions = highlightOptions(color = "white", weight = 2,
                                                         bringToFront = TRUE)) %>%
         setView(lng = -75, lat = -15, zoom = 2)
-      # dput(por_pais[1:10, 1:5])
     })
     
     # Balança comercial detalhada
-    output$titulo2 <- renderText(paste(input$tipo,"de", input$pais, "\nem", input$ano))
-    
-    output$graf2 <- renderPlotly({
+    output$graf2 <- renderChart2({
       
       por_merc <- base %>% 
-        filter(grepl(x = rgCode, pattern = input$tipo),
+        filter(grepl(x = rgCode, pattern = input$tipo2),
                ptCode == 0,
-               yr == as.character(input$ano),
+               yr == as.character(input$ano2),
                rtTitle == input$pais) %>%
-        group_by(cmdCode) %>% summarise(Mercadoria = first(cmdDescE),
-                                        Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
-        arrange(desc(Valor)) %>%
-        ungroup() %>% mutate(soma_acu = cumsum(Valor), percentual = soma_acu*100/sum(Valor))
-      
-      graf_merc <- ggplot(data = por_merc %>% filter(percentual <= input$qt_merc), aes(x = reorder(Mercadoria, Valor), y = Valor)) +
-        geom_bar(stat = 'identity', fill = 'indianred', alpha = 0.9) +
-        geom_text(aes(label = format(x = Valor, decimal.mark = ",")),
-                  hjust = -4.1, col = 'black', size = 6) +
-        theme_bw(base_size = 15) +
-        theme(axis.text.y = element_text(size = 8, face = 'bold')) +
-        labs(x = " ", y = "Volume de comercio, em bilhoes de US$") +
-        coord_flip()
-      
-      ggplotly(graf_merc)
+        group_by(pai_desc) %>%
+        summarise(Mercadoria = first(pai_desc),
+                  Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
+        arrange(desc(Valor)) %>% ungroup() %>% 
+        hPlot(data = ., y = "Valor", x = "Mercadoria",
+            type = "bar", title = "Volume de comercio, em bilhoes de US$")
     })
     
     # Preços das principais mercadorias

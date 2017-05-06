@@ -5,21 +5,16 @@ shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
   dashboardSidebar(disable = TRUE),
   
   dashboardBody(
-    HTML('<script src="https://code.jquery.com/jquery-1.11.3.js"></script>'),
     tags$script(
-      " $(function() {
-          $('nav.navbar').attr('style','background-color: #00a65a;');
-          $('div.navbar-header').attr('style','background-color: #008d4c;');
-          $('span.navbar-brand').attr('style','color: #fff; font-weight: bold');
-          $('li a').attr('style','color: #fff; font-weight: 500');
-       });
-        $( 'nav' ).on('click', function() {
-          $('div.navbar-header').attr('style','background-color: #008d4c;');
-          $('this').attr('style','background-color: #008d4c;');
-       })"
+      "$(function() {
+         $('nav.navbar').attr('style','background-color: #00a65a;');
+         $('div.navbar-header').attr('style','background-color: #008d4c;');
+         $('span.navbar-brand').attr('style','color: #fff; font-weight: bold');
+         $('#barra li a').attr('style','color: #fff; font-weight: bold');
+       });"
       ),
     navbarPage('Observatório Latino-Americano', collapsible = TRUE, id = "barra", position = 'static-top',
-      HTML('<img src="logo-mini.png" alt=""/>'),
+      # HTML('<img src="logo-mini.png" alt=""/>'),
       tabPanel("Início", fluidRow(
         column(6, box(title = "", status = "warning", width = "100%", align = "center",
                       img(src = 'iela_portal_2015_logos_ola.png'))),
@@ -51,10 +46,10 @@ shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
                                               "Exportação e Importação (corrente de comércio)" = '[1-4]'),
                                selected = "Exportação"),
                    selectInput("mapa_merc", "Mercadoria: ", 
-                               choices = c("Total", as.character(unique(base$cmdDescE))),
+                               choices = c("Total", as.character(unique(base$pai_desc))),
                                selected = 2),
                    sliderInput("ano", label = "Escolha o ano", sep = "", 
-                               min = 2007, max = 2016, value = 2016)
+                               dragRange = FALSE, min = 2007, max = 2016, value = 2016)
                )
         ),
         column(7, box(title = "Comércio exterior por país", width = "100%",
@@ -74,11 +69,16 @@ shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
                                               "Honduras", "Jamaica", "Mexico", "Nicaragua",
                                               "Panama", "Paraguay", "Peru", "Uruguay", "Venezuela"),
                                selected = "Brazil"),
-                   sliderInput("qt_merc", label = "Mostrar mercadorias que acumulem quantos por cento?",
-                               min = 40, max = 85, value = 50, sep = ""))), 
+                   selectInput("tipo2", label = "Escolha  a categoria do comercio exterior", 
+                               choices = list("Exportação" = '[2|3]',
+                                              "Importação" = '[1|4]',
+                                              "Exportação e Importação (corrente de comércio)" = '[1-4]'),
+                               selected = "Exportação"),
+                   sliderInput("ano2", label = "Escolha o ano", sep = "", 
+                               dragRange = FALSE, min = 2007, max = 2016, value = 2016))), 
         column(8,
                box(title = "Balança comercial", width = "100%",
-                   plotlyOutput("graf2"),
+                   showOutput("graf2", "highcharts"),
                    p("Fonte:", a("Estatísticas de comércio da ONU", target = "_blank",
                                  href = "https://comtrade.un.org/data/"))
                ))
@@ -228,7 +228,7 @@ shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
     )),
     #####
     # Início da aba 3 - Rentismo
-    tabPanel("Fronteira agrícola", fluidRow(
+    tabPanel("Renda da terra", fluidRow(
       column(4,
              box(width = "100%",
                  checkboxGroupInput("paises.fronteira", "Escolha os países",
@@ -251,7 +251,7 @@ shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
              )),
       column(8,
              box(title = "Indicadores de uso da terra", width = "100%", 
-                 HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
+                 # HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
                  chartOutput("graf_fronteira", 'highcharts'),
                  p("Fonte:", a("Organização das Nações Unidade para a Alimentação e Agricultura - FAO", target = "_blank",
                                href = "http://www.fao.org/statistics/en/")))
