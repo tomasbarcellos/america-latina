@@ -25,26 +25,15 @@ shapes <- readRDS('dados/shapes.RDS')
 reservas <- readRDS('dados/reservas.RDS')
 SMN <- readRDS('dados/sal_min_nec.RDS')
 concentracao <- readRDS('dados/concentracao.RDS')
+bal_pag <- readRDS('BP_AL.RDS')
 
 options(scipen = 9e4)
 
 base$rtTitle <- as.character(base$rtTitle)
 
-# tabela_por_pais <- base %>% filter(ptTitle == "World") %>%
-#   group_by(rtTitle, rgDesc, yr) %>% 
-#   summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>% ungroup() %>%
-#   arrange(desc(Valor))
-# 
-# tabela_por_merc <- base %>% 
-#   filter(ptTitle == "World") %>%
-#   group_by(cmdCode, rgDesc, yr, rtTitle) %>%
-#   summarise(Mercadoria = first(cmdDescEPt),
-#             Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
-#   arrange(desc(Valor))
-
 names(precos)[3] <- 'preco'
 
-# escolhas = c(0, unique(base$cmdCode))
-# names(escolhas) = c("Todas", unique(base$cmdDescEPt))
-# escolhas <- escolhas[!is.na(names(escolhas))]
-
+# plot <- Highcharts$new()
+# plot$chart(type = "spline")
+# plot$series(data = )
+# plot$yAxis("um texto")

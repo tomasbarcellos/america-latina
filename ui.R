@@ -85,36 +85,36 @@ shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
       )),
 
       #####
-      tabPanel("Preços das principais mercadorias", fluidRow(
-        column(4, 
-               box(width = "100%",
-                   sliderInput("periodo", label = "Visualizar os precos entre:", sep = "",
-                               min = 1960, max = 2015, value = c(1995,2015))
-               ),
-               box(width = "100%",
-                   checkboxGroupInput("mercadoria", label = "Escolha o(s) índice(s):", 
-                                      choices = list(`Petróleo WTI` = 'CRUDE_WTI',
-                                                     `Agricultura` = 'IAGRICULTURE',
-                                                     `Bebidas` = 'IBEVERAGES', 
-                                                     `Energia` = 'IENERGY',
-                                                     `Óleos e gordutas` = 'IFATS_OILS',
-                                                     `Fertilizantes` = 'IFERTILIZERS',
-                                                     `Comida` = 'IFOOD',
-                                                     `Grãos` = 'IGRAINS',
-                                                     `Metais e minerais` = 'IMETMIN',
-                                                     `Não combustíveis` = 'INONFUEL',
-                                                     `Minério de ferro` = 'IRON_ORE',
-                                                     `Madeira` = 'ITIMBER',
-                                                     `Outros alimentos` = 'IOTHERFOOD'),
-                                      selected = c('IAGRICULTURE', 'IGRAINS'),
-                                      inline = TRUE)
-               )),
-        column(8, box(title = "Preços", width = "100%",
-                      plotlyOutput("graf3", height = '100%'), 
-                      p("Fonte:", a("Banco Mundial", target = "_blank",
-                                    href = "http://siteresources.worldbank.org/INTPROSPECTS/Resources/GemDataEXTR.zip")))
-        )
-      )),
+      # tabPanel("Preços das mercadorias", fluidRow(
+      #   column(4, 
+      #          box(width = "100%",
+      #              sliderInput("periodo", label = "Visualizar os precos entre:", sep = "",
+      #                          min = 1960, max = 2015, value = c(1995,2015))
+      #          ),
+      #          box(width = "100%",
+      #              checkboxGroupInput("mercadoria", label = "Escolha o(s) índice(s):", 
+      #                                 choices = list(`Petróleo WTI` = 'CRUDE_WTI',
+      #                                                `Agricultura` = 'IAGRICULTURE',
+      #                                                `Bebidas` = 'IBEVERAGES', 
+      #                                                `Energia` = 'IENERGY',
+      #                                                `Óleos e gordutas` = 'IFATS_OILS',
+      #                                                `Fertilizantes` = 'IFERTILIZERS',
+      #                                                `Comida` = 'IFOOD',
+      #                                                `Grãos` = 'IGRAINS',
+      #                                                `Metais e minerais` = 'IMETMIN',
+      #                                                `Não combustíveis` = 'INONFUEL',
+      #                                                `Minério de ferro` = 'IRON_ORE',
+      #                                                `Madeira` = 'ITIMBER',
+      #                                                `Outros alimentos` = 'IOTHERFOOD'),
+      #                                 selected = c('IAGRICULTURE', 'IGRAINS'),
+      #                                 inline = TRUE)
+      #          )),
+      #   column(8, box(title = "Preços", width = "100%",
+      #                 plotlyOutput("graf3", height = '100%'), 
+      #                 p("Fonte:", a("Banco Mundial", target = "_blank",
+      #                               href = "http://siteresources.worldbank.org/INTPROSPECTS/Resources/GemDataEXTR.zip")))
+      #   )
+      # )),
       #####
       tabPanel("Termos de troca", fluidRow(
         column(4,
@@ -131,7 +131,10 @@ shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
                                               "Porder de compra das exportações de bens e serviços" = 4359,
                                               "Termos de troca de bens e serviços"= 4360,
                                               "Termos de troca de serviços" = 4358),
-                               selected = 4360)
+                               selected = 4360),
+                   sliderInput("termos_periodo", "", sep = "",
+                               min = range(termos_troca$Años_desc)[1], max = range(termos_troca$Años_desc)[2],
+                               value = range(termos_troca$Años_desc))
                )
         ), 
         column(8, box(title = "Termos de trocas", width = "100%",
@@ -147,10 +150,15 @@ shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
       tabPanel("Fluxo de capitais", fluidRow(
         column(4, 
                box(width = "100%",
-                   selectInput("capitais", label = "Variável: ", 
-                               choices = list("Entrada liquida de capitais autonomos", "Entrada liquida de capitais nao-autonomos",
-                                              "Total da entrada liquida de capital", "Balanca de rendas", 
-                                              "Transferencias liquidas"), selected = "Total da entrada liquida de capital")
+                   selectInput("capitais", label = "Variável: ",
+                               choices = unique(bal_pag$Rubrica), selected = "II.  BALANCE EN CUENTA DE CAPITAL"),
+                   sliderInput("capitais_periodo", "", sep = "",
+                               min = range(bal_pag$Ano)[1], max = range(bal_pag$Ano)[2],
+                               value = range(bal_pag$Ano))
+                   # selectInput("capitais", label = "Variável: ", 
+                   #             choices = list("Entrada liquida de capitais autonomos", "Entrada liquida de capitais nao-autonomos",
+                   #                            "Total da entrada liquida de capital", "Balanca de rendas", 
+                   #                            "Transferencias liquidas"), selected = "Total da entrada liquida de capital")
                ),
                box(width = "100%",
                    checkboxGroupInput("paises.capitais", "Países: ", inline = TRUE,
@@ -160,7 +168,7 @@ shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
         ),
         column(8, 
                box(title = "Balança de capitais", width = "100%",
-                   plotlyOutput("graf4", height = '100%'),
+                   showOutput("graf4", 'highcharts'),
                    p("Fonte:", a("Comissão Econômica para a América Latina - CEPAL", target = "_blank",
                                  href = "http://estadisticas.cepal.org/cepalstat/WEB_CEPALSTAT/Portada.asp?")))
         )
@@ -176,7 +184,9 @@ shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
                ),
                box(width = "100%",
                    sliderInput("periodo.desemprego", label = "Período", sep = "",
-                               min = 2005, max = 2015, value = c(2008,2015))
+                               min = range(desemprego$Años_desc)[1],
+                               max = range(desemprego$Años_desc)[2],
+                               value = range(desemprego$Años_desc))
                ),
                box(width = "100%",
                    checkboxGroupInput(
@@ -205,7 +215,9 @@ shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
                                             'Dias não trabalhados (em razão de greves)' = "Days not worked due to strikes and lockouts by economic activity null",
                                             'Trabalhadores envolvidos em greves' = "Workers involved in strikes and lockouts by economic activity (thousands)",
                                             'Dias não trabalhados (em razão de greves) por 1000 trabalhadores' = "Days not worked per 1000 workers due to strikes and lockouts by economic activity null"),
-                             selected = "Number of strikes and lockouts by economic activity null")
+                             selected = "Number of strikes and lockouts by economic activity null"),
+                 sliderInput("greve.anos", "Período: ", sep = "", 
+                             min = 1970, max = 2015, value = c(1980, 2015))
              ),
              box(width = "100%",
                  checkboxGroupInput("greve.paises", "Países: ",
@@ -220,12 +232,11 @@ shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
                  HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
                  chartOutput("graf_greves", 'highcharts'),
                  p("Fonte:", a("Organização Internacional do Trabalho - OIT", target = "_blank",
-                               href = "http://www.ilo.org/ilostat/faces/wcnav_defaultSelection?")),
-                 sliderInput("greve.anos", "Período: ", sep = "", 
-                             min = 1970, max = 2015, value = c(1980, 2015)))
+                               href = "http://www.ilo.org/ilostat/faces/wcnav_defaultSelection?")))
       )
     ))
     )),
+    
     #####
     # Início da aba 3 - Rentismo
     tabPanel("Renda da terra", fluidRow(

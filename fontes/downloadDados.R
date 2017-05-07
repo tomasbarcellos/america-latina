@@ -356,3 +356,17 @@ names(dado) <- c("ISO3", "País", "Cod_Elemento", "Elemento",
                  "Unidade", "Valor")
 dado <- filter(dado, Produto %in% c("Superficie agrícola", "Praderas y pastos permanentes"))
 saveRDS(dado, 'dados/fronteira_agri_AL.RDS')
+
+###########################
+## Balança de pagamentos ##
+###########################
+
+BP <- RCEPAL::CEPAL_stat(2050)
+
+BP2 <- BP %>%
+  filter(Rubro %in% c(1274, 26763, 26764, 1290, 1285, 1275, 1276, 26018, 1278)) %>% 
+  group_by(Pais = País_desc, Ano = Años_desc, Rubrica = Rubro_desc, Rubro) %>% 
+  summarise(valor = sum(valor)) %>% 
+  ungroup()
+
+saveRDS(BP2, "BP_AL.RDS")
