@@ -27,24 +27,25 @@ shinyServer(
       por_pais <- por_pais %>% mutate(cor = if (n() <= 2) {
         rep("#238B45", n())
       } else {
-        colorQuantile("Greens", por_pais$Valor)(por_pais$Valor)
+        colorBin("Greens", por_pais$Valor)(por_pais$Valor)
       })
       
       formas <- sp::merge(shapes, por_pais)
       
       formas$etiqueta[is.na(formas$Valor)] <- ": Sem informações"
       
-      formas <- subset(formas, formas$rtTitle %in% input$quant)
-      
-      formas %>% leaflet() %>%
+      subset(formas, formas$rtTitle %in% input$quant) %>% leaflet() %>%
         addProviderTiles(providers$OpenStreetMap) %>%
         addPolygons(color = "#444444", weight = 1, smoothFactor = 0.2,
-                    opacity = 1.0, fillOpacity = 0.9,
+                    opacity = 1.0, fillOpacity = 1,
                     label = ~paste0(NAME, etiqueta),
                     fillColor = ~cor,
                     highlightOptions = highlightOptions(color = "white", weight = 2,
-                                                        bringToFront = TRUE)) #%>%
-        # setView(lng = -75, lat = -15, zoom = 2)
+                                                        bringToFront = TRUE)) %>%
+        setView(lng = -75, lat = -15, zoom = 3) %>% 
+        addLegend("bottomleft", pal = colorBin("Greens", por_pais$Valor), values = ~Valor,
+                  labFormat = labelFormat(prefix = "Mi US$"),
+                  opacity = 1)
     })
     
     # Balança comercial detalhada

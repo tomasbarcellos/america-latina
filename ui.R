@@ -1,6 +1,6 @@
 # ui.R
 
-shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
+shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "green",
   dashboardHeader(disable = TRUE),
   dashboardSidebar(disable = TRUE),
   
@@ -53,7 +53,7 @@ shinyUI(dashboardPage(title = "Observatório Latino-Americano", skin = "green",
                )
         ),
         column(7, box(title = "Comércio exterior por país", width = "100%",
-                      leafletOutput("mapa"),
+                      leafletOutput("mapa", height = "600px"),
                       p("Fonte:", a("Estatísticas de comércio da ONU", target = "_blank",
                                     href = "https://comtrade.un.org/data/"))
         ))
