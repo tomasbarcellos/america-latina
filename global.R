@@ -25,7 +25,7 @@ shapes <- readRDS('dados/shapes.RDS')
 reservas <- readRDS('dados/reservas.RDS')
 SMN <- readRDS('dados/sal_min_nec.RDS')
 concentracao <- readRDS('dados/concentracao.RDS')
-bal_pag <- readRDS('BP_AL.RDS')
+bal_pag <- readRDS('dados/BP_AL.RDS')
 
 options(scipen = 9e4)
 
