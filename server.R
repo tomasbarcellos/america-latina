@@ -63,19 +63,19 @@ shinyServer(
               title = "Volume de comercio, em bilhoes de US$")
     })
     
-    # Preços das principais mercadorias
-    output$graf3 <- renderPlotly({
-      precos.dim <- precos %>% filter(Mercadoria %in% input$mercadoria, 
-                                      Ano >= input$periodo[1], Ano <= input$periodo[2])
-      graf_precos <- ggplot(precos.dim, aes(x = Ano, y = preco)) + 
-        geom_line(data = precos.dim,
-                  aes(col = Mercadoria), alpha = 0.9, size = 2) +
-        theme_bw() +
-        # scale_fill_discrete() +
-        labs(x = " ", y = "Índice (2010 = 100)")
-      
-      ggplotly(graf_precos) %>% layout(legend = list(orientation = 'h'))
-    })
+    # # Preços das principais mercadorias
+    # output$graf3 <- renderPlotly({
+    #   precos.dim <- precos %>% filter(Mercadoria %in% input$mercadoria, 
+    #                                   Ano >= input$periodo[1], Ano <= input$periodo[2])
+    #   graf_precos <- ggplot(precos.dim, aes(x = Ano, y = preco)) + 
+    #     geom_line(data = precos.dim,
+    #               aes(col = Mercadoria), alpha = 0.9, size = 2) +
+    #     theme_bw() +
+    #     # scale_fill_discrete() +
+    #     labs(x = " ", y = "Índice (2010 = 100)")
+    #   
+    #   ggplotly(graf_precos) %>% layout(legend = list(orientation = 'h'))
+    # })
     
     # Balança de capitais
     output$graf4 <- renderChart2({

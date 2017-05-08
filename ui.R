@@ -162,7 +162,7 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
                ),
                box(width = "100%",
                    checkboxGroupInput("paises.capitais", "Países: ", inline = TRUE,
-                                      choices = unique(capitais$pais), 
+                                      choices = unique(bal_pag$Pais), 
                                       selected = c("Argentina", "Chile", "Colombia"))
                )
         ),

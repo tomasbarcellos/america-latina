@@ -15,7 +15,7 @@ library(rCharts)
 
 base <- readRDS("dados/comercioAL.RDS")
 precos <- readRDS("dados/precos_commodities.rds")
-capitais <- readRDS("dados/capitais_AL.rds")
+# capitais <- readRDS("dados/capitais_AL.rds")
 desemprego <- readRDS('dados/desemprego.RDS')
 greves <- readRDS('dados/greves.RDS')
 fronteira <- readRDS('dados/fronteira_agri_AL.RDS')
@@ -32,7 +32,3 @@ base$rtTitle <- as.character(base$rtTitle)
 
 names(precos)[3] <- 'preco'
 
-# plot <- Highcharts$new()
-# plot$chart(type = "spline")
-# plot$series(data = )
-# plot$yAxis("um texto")
