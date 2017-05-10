@@ -8,12 +8,12 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
     tags$script(
       "$(function() {
          $('nav.navbar').attr('style','background-color: #00a65a;');
-         $('div.navbar-header').attr('style','background-color: #008d4c;');
+         //$('div.navbar-header').attr('style','background-color: #008d4c;');
          $('span.navbar-brand').attr('style','color: #fff; font-weight: bold');
          $('#barra li a').attr('style','color: #fff; font-weight: bold');
        });"
       ),
-    navbarPage('Observatório Latino-Americano', collapsible = TRUE, id = "barra", position = 'static-top',
+    navbarPage('', collapsible = TRUE, id = "barra", position = 'static-top',
       # HTML('<img src="logo-mini.png" alt=""/>'),
       tabPanel("Início", fluidRow(
         column(6, box(title = "", status = "warning", width = "100%", align = "center",
@@ -29,12 +29,12 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
                    checkboxGroupInput("quant", label = "Escolha os países",
                                       choices = list("Argentina", "Bolivia (Plurinational State of)",
                                                      "Brazil", "Chile", "Colombia", "Dominican Rep.",
-                                                     "Ecuador", "El Salvador", "Guatemala", "Guinea",
+                                                     "Ecuador", "El Salvador", "Guatemala",
                                                      "Honduras", "Jamaica", "Mexico", "Nicaragua",
                                                      "Panama", "Paraguay", "Peru", "Uruguay", "Venezuela"),
                                       selected = c("Argentina", "Bolivia (Plurinational State of)",
                                                    "Brazil", "Chile", "Colombia", "Dominican Rep.",
-                                                   "Ecuador", "El Salvador", "Guatemala", "Guinea",
+                                                   "Ecuador", "El Salvador", "Guatemala",
                                                    "Honduras", "Jamaica", "Mexico", "Nicaragua",
                                                    "Panama", "Paraguay", "Peru", "Uruguay", "Venezuela"),
                                       inline = TRUE)
@@ -65,7 +65,7 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
                                label = "Deseja obter informacoes sobre qual pais?", 
                                choices = list("Argentina", "Bolivia (Plurinational State of)",
                                               "Brazil", "Chile", "Colombia", "Dominican Rep.",
-                                              "Ecuador", "El Salvador", "Guatemala", "Guinea",
+                                              "Ecuador", "El Salvador", "Guatemala",
                                               "Honduras", "Jamaica", "Mexico", "Nicaragua",
                                               "Panama", "Paraguay", "Peru", "Uruguay", "Venezuela"),
                                selected = "Brazil"),
@@ -78,6 +78,7 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
                                dragRange = FALSE, min = 2007, max = 2016, value = 2016))), 
         column(8,
                box(title = "Balança comercial", width = "100%",
+                   HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
                    showOutput("graf2", "highcharts"),
                    p("Fonte:", a("Estatísticas de comércio da ONU", target = "_blank",
                                  href = "https://comtrade.un.org/data/"))
@@ -168,6 +169,7 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
         ),
         column(8, 
                box(title = "Balança de capitais", width = "100%",
+                   HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
                    showOutput("graf4", 'highcharts'),
                    p("Fonte:", a("Comissão Econômica para a América Latina - CEPAL", target = "_blank",
                                  href = "http://estadisticas.cepal.org/cepalstat/WEB_CEPALSTAT/Portada.asp?")))
@@ -262,7 +264,7 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
              )),
       column(8,
              box(title = "Indicadores de uso da terra", width = "100%", 
-                 # HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
+                 HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
                  chartOutput("graf_fronteira", 'highcharts'),
                  p("Fonte:", a("Organização das Nações Unidade para a Alimentação e Agricultura - FAO", target = "_blank",
                                href = "http://www.fao.org/statistics/en/")))
