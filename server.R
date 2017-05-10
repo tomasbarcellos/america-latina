@@ -13,10 +13,8 @@ shinyServer(
       
       por_pais <- base %>% 
         filter(grepl(x = rgCode, pattern = input$tipo),
-               ptTitle == "World",
                rtTitle %in% input$quant,
-               yr == as.character(input$ano),
-               mercadoria) %>%
+               yr == as.character(input$ano), mercadoria) %>%
         group_by(rtTitle) %>%
         summarise(ISO3 =  first(rt3ISO),
                   Valor = round(sum(TradeValue)/10^6, digits = 1),
@@ -27,7 +25,7 @@ shinyServer(
       por_pais <- por_pais %>% mutate(cor = if (n() <= 2) {
         rep("#238B45", n())
       } else {
-        colorBin("Greens", por_pais$Valor)(por_pais$Valor)
+        colorBin("Greens", por_pais$Valor, 5)(por_pais$Valor)
       })
       
       formas <- sp::merge(shapes, por_pais)
@@ -36,14 +34,15 @@ shinyServer(
       
       subset(formas, formas$rtTitle %in% input$quant) %>% leaflet() %>%
         addProviderTiles(providers$OpenStreetMap) %>%
-        addPolygons(color = "#444444", weight = 1, smoothFactor = 0.2,
+        addPolygons(color = "#555", weight = 1, smoothFactor = 0.2,
                     opacity = 1.0, fillOpacity = 1,
                     label = ~paste0(NAME, etiqueta),
-                    fillColor = ~cor,
-                    highlightOptions = highlightOptions(color = "white", weight = 2,
+                    labelOptions = labelOptions(textsize = "15px"),
+                    fillColor = ~cor, 
+                    highlightOptions = highlightOptions(color = "#808080", weight = 2,
                                                         bringToFront = TRUE)) %>%
-        setView(lng = -75, lat = -15, zoom = 3) %>% 
-        addLegend("bottomleft", pal = colorBin("Greens", por_pais$Valor), values = ~Valor,
+        setView(lng = -75, lat = -4, zoom = 3) %>% 
+        addLegend("bottomleft", pal = colorBin("Greens", por_pais$Valor, 5), values = ~Valor,
                   labFormat = labelFormat(prefix = "Mi US$"),
                   opacity = 1)
     })
@@ -53,12 +52,12 @@ shinyServer(
       
       base %>% 
         filter(grepl(x = rgCode, pattern = input$tipo2),
-               ptCode == 0, yr == as.character(input$ano2),
+               yr == as.character(input$ano2),
                rtTitle == input$pais) %>%
         group_by(pai_desc) %>%
         summarise(Mercadoria = first(pai_desc),
                   Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
-        arrange(desc(Valor)) %>% ungroup() %>% 
+        # arrange(desc(Valor)) %>% ungroup() %>% 
         hPlot(data = ., y = "Valor", x = "Mercadoria", type = "bar",
               title = "Volume de comercio, em bilhoes de US$")
     })

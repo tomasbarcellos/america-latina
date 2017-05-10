@@ -4,25 +4,34 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
   dashboardHeader(disable = TRUE),
   dashboardSidebar(disable = TRUE),
   
-  dashboardBody(
-    tags$script(
-      "$(function() {
-         $('nav.navbar').attr('style','background-color: #00a65a;');
-         //$('div.navbar-header').attr('style','background-color: #008d4c;');
-         $('span.navbar-brand').attr('style','color: #fff; font-weight: bold');
-         $('#barra li a').attr('style','color: #fff; font-weight: bold');
-       });"
-      ),
-    navbarPage('', collapsible = TRUE, id = "barra", position = 'static-top',
-      # HTML('<img src="logo-mini.png" alt=""/>'),
-      tabPanel("Início", fluidRow(
-        column(6, box(title = "", status = "warning", width = "100%", align = "center",
-                      img(src = 'iela_portal_2015_logos_ola.png'))),
-        column(6, box(title = "", status = "primary", width = "100%",
-                      h3("Painel do Observatório Latino-Americano (OLA)"),
-                      p("Um texto bem legal explicando o que é este painel e como usá-lo.")))
-      )),
-      tabPanel("Mercado Mundial", tabBox(width = 12,
+  dashboardBody(tags$style('section.content {padding-top: 5px;
+                                             padding-bottom: 0px;
+                                             padding-right: 0px;
+                                             padding-left: 0px;
+                                             margin-top: 0px;
+		                                         margin-right: 0px;
+                                             margin-bottom: 0px;
+                                             margin-left: 0px;}
+                            div.tab-content, div.row, :after, :before {
+                              padding-bottom: 0px;
+                              margin-bottom: 0px;
+                              border-bottom-right-radius: 0px;
+                              border-bottom-left-radius: 0px;
+                              padding-right: 0px;
+                              padding-left: 0px;}'),
+    # tags$script(
+    #   "$(function() {
+    #      $('nav.navbar').attr('style','background-color: #00a65a;');
+    #      //$('div.navbar-header').attr('style','background-color: #008d4c;');
+    #      $('span.navbar-brand').attr('style','color: #fff; font-weight: bold');
+    #      $('#barra li a').attr('style','color: #fff; font-weight: bold;');
+    #      $('#barra li a').attr('style','.active, :focus {color: #555;}');
+    #    });"
+    #   ),
+    # tags$script(src = 'estiloBS.css', type = 'stylesheet'),
+    # navbarPage('', collapsible = TRUE, id = "barra", position = 'static-top',
+    tabBox(width = "100%",
+      tabPanel("Mercado Mundial", tabBox(width = "100%", side = "right",
       tabPanel("Toda região", fluidRow(
         column(5,
                box("Países", width = "100%",
@@ -52,8 +61,8 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
                                dragRange = FALSE, min = 2007, max = 2016, value = 2016)
                )
         ),
-        column(7, box(title = "Comércio exterior por país", width = "100%",
-                      leafletOutput("mapa", height = "600px"),
+        column(7, box(title = NULL, width = "100%",
+                      leafletOutput("mapa", height = "450px"),
                       p("Fonte:", a("Estatísticas de comércio da ONU", target = "_blank",
                                     href = "https://comtrade.un.org/data/"))
         ))
@@ -175,7 +184,7 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
                                  href = "http://estadisticas.cepal.org/cepalstat/WEB_CEPALSTAT/Portada.asp?")))
         )
       )),
-      tabPanel("Classe trabalhadora", tabBox(width = 12,
+      tabPanel("Classe trabalhadora", tabBox(width = "100%", side = "right",
       tabPanel("Desemprego", fluidRow(
         column(4,
                box(width = "100%",
