@@ -105,7 +105,7 @@ get.Comtrade <- function(r, # Area do relatorio. Um numero por pais
 
 # Define data frame com codigo e nome dos pa?ses da Am?rica Latina
 am_lat <- data.frame(codigo_UNComTrade = c(32, 68, 76, 152, 170, 188, 192, 214, 218,
-                                           222, 254, 320, 324, 328, 332, 340, 388, 484,
+                                           222, 254, 320, 328, 332, 340, 388, 484,
                                            558, 591, 600, 604, 780, 858, 862),
                      pais = c("Argentina", "Bolivia", "Brasil", "Chile",
                               "Colombia", "Costa Rica", "Cuba", "Rep. Dominacana", "Ecuador",
