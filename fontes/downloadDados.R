@@ -1,8 +1,3 @@
-# Retire o jogo da velha caso n?o possua os pacoques listados abaixo:
-# install.packages("dplyr")
-# install.packages("readxl")
-# install.packages("rjson")
-
 library(dplyr)
 library(tidyr)
 library(readxl)
@@ -85,13 +80,14 @@ get.Comtrade <- function(r, # Area do relatorio. Um numero por pais
   cat("Resposta recebida: ", http_status(resposta)[[1]],"\n")
   
   if(fmt == "csv") {
-    raw.data<- read.csv(httr::content(resposta),header=TRUE, stringsAsFactors = TRUE)
-    return(list(validation=NULL, data=raw.data))
+    raw.data<- read.csv(httr::content(resposta), header = TRUE,
+                        stringsAsFactors = TRUE)
+    return(list(validation = NULL, data = raw.data))
   } else {
     if(fmt == "json" ) {
       raw.data <- httr::content(resposta)
       data <- raw.data$dataset
-      validation<- unlist(raw.data$validation, recursive=TRUE)
+      validation<- unlist(raw.data$validation, recursive = TRUE)
       ndata <- NULL
       if(length(data) > 0) {
         var.names <- names(data[[1]])
@@ -99,7 +95,7 @@ get.Comtrade <- function(r, # Area do relatorio. Um numero por pais
         ndata <- NULL
         for(i in 1:ncol(data)){
           data[sapply(data[,i],is.null),i] <- NA
-          ndata <- cbind(ndata, unlist(data[,i]))
+          ndata <- cbind(ndata, unlist(data[ , i]))
         }
         ndata <- as.data.frame(ndata)
         colnames(ndata) <- var.names
@@ -130,7 +126,7 @@ names(comercioAL) <- am_lat$pais
 # Loop que tenta fazer o download dos dados de exporta??o de cada pa?s
 for (pais in seq_along(am_lat$pais)) {
   comercioAL[[pais]] <- try(get.Comtrade(am_lat[pais,1],
-                                         ps = "2011,2010,2009,2008,2007"))
+                                         ps = "2002,2003,2004,2005,2006"))
 } # Primeira rodada, erros de conexao sao comuns
 
 # Cria vetor que armazenar? os erros da ?ltima opera??o
@@ -143,7 +139,8 @@ warning(length(erros), if (length(erros) == 1) {" erro encontrado!"} else {" err
       " Rode o c?digo abaixo para realizar nova tentativa de download para aqueles pa?ses em que ouve falha"})
 
 # Loop que dura enquanto persistirem erros na tentativa de download
-while (length(erros) > 0) {
+tentativa <- 0
+while (length(erros) > 0 && tentativa < 10) {
   for (i in erros) {
     comercioAL[[i]] <- try(get.Comtrade(am_lat[i,1])) 
   }
@@ -151,9 +148,12 @@ while (length(erros) > 0) {
   erros <- which(sapply(comercioAL, function (x) class(x) == "try-error") |
                    sapply(comercioAL, function (x) any(sapply(x, is.null))))
   
-  warning(length(erros), if (length(erros) == 1) {" erro encontrado!"} else {" erros encontrados!"},
-          if(length(erros) >0 ) {
-            " Realizarei uma nova tentativa"})
+  msg1 <- if (length(erros) == 1) " erro encontrado!" else " erros encontrados!"
+  msg2 <- if(length(erros) >0 ) " Realizarei uma nova tentativa" else ""
+  
+  warning(length(erros), msg1, msg2)
+  
+  tentativa <- tentativa + 1
 }
 
 # O c?digo abaixo deve ser rodado caso ainda tenham persistido erros (elimine '#' da linha abaixo)
@@ -163,7 +163,7 @@ while (length(erros) > 0) {
 # saveRDS(comercioAL, file = "comercio_listaJSON.rds")
 
 # Elimina lista dos paises que tenha falhado em fazer download (elimine '#' da linha abaixo)
-# comercioAL[[which(erros == TRUE)]] <- NULL
+# comercioAL[erros] <- NULL
 
 AL_df <- vector('list', length(comercioAL))
 names(AL_df) <- names(comercioAL)
@@ -174,7 +174,6 @@ for (pais in seq_along(AL_df)) {
   } else {
     AL_df[[pais]] <- comercioAL[[pais]]
   }
-  
 }
 
 # Transforma todas as listas num unico data-frame
@@ -182,7 +181,7 @@ AL_df <- as.data.frame(do.call(rbind, AL_df))
 
 # Verifica quais colunas s?o inuteis (apenas NAs)
 elim <- as.vector(which(sapply(AL_df, function (x) sum(is.na(x)) == length(x)) | 
-        sapply(AL_df, function (x) length(levels(x)) <= 1) == T))
+        sapply(AL_df, function (x) length(levels(x)) <= 1) == TRUE))
 
 # Elimina colunas inuteis
 AL_df <- AL_df[ , -elim]
@@ -191,18 +190,11 @@ AL_df$cmdCode <- as.integer(as.character(AL_df$cmdCode))
 
 AL_df$TradeValue <- as.numeric(as.character(AL_df$TradeValue))
 
-# traducao <- read.csv2(file = "dados/traducao.csv",
-#                       stringsAsFactors = F)
-# 
-# AL_df <- left_join(x = AL_df, y = traducao, by = "cmdCode")
-
 AL_df <- unique(AL_df)
 
-antigo <- readRDS('dados/comercioAL.RDS')
+antigo <- readRDS('dados/comercioAL.RDS')[, 1:15] # ignora colunas que vai criar abaixo
 
-novo <- rbind(AL_df, antigo)
-
-saveRDS(novo, file = "dados/comercioAL.RDS")
+novo <- rbind(AL_df, antigo) %>% unique()
 
 dic <- fromJSON(file = 'https://comtrade.un.org/data/cache/classificationST.json')
 dic <- do.call("rbind", dic$results) %>% as.data.frame()
@@ -211,9 +203,11 @@ dicionario <- lapply(dic, unlist) %>% as.data.frame(stringsAsFactors = FALSE) %>
 dicionario_pai <- left_join(dicionario, dicionario[, 1:2], by = c("parent" = "id"))
 dicionario_pai$id <- as.integer(dicionario_pai$id)
 names(dicionario_pai) <- c("id", "id_desc", "pai", "pai_desc")
-comercio_total <- left_join(novo, dicionario_pai, by = c("cmdCode" = "id"))
+comercio_total <- left_join(novo, dicionario_pai,
+                          by = c("cmdCode" = "id")) %>% unique()
 
 saveRDS(comercio_total, file = "dados/comercioAL.RDS")
+saveRDS(comercio_total %>% filter(ptTitle == "World"), file = "dados/comercioAL_mundo.RDS")
 
 ###########################
 #### Download de dados ####

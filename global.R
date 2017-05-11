@@ -9,8 +9,7 @@ library(sp)
 library(leaflet)
 library(rCharts)
 
-base <- readRDS("dados/comercioAL.RDS") %>% 
-  filter(ptTitle == "World") %>% 
+base <- readRDS("dados/comercioAL_mundo.RDS") %>%
   select(pai_desc, rgCode, ptTitle, rtTitle, yr, rt3ISO, TradeValue)
 precos <- readRDS("dados/precos_commodities.rds")
 desemprego <- readRDS('dados/desemprego.RDS')
