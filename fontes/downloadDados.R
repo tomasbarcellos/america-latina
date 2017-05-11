@@ -12,30 +12,28 @@ library(rvest)
 ####    mercadorias    ####
 ###########################
 
-# Download de dados do Banco Mundial
-if (dir.exists("dados") == FALSE) dir.create("dados")
-download.file("http://siteresources.worldbank.org/INTPROSPECTS/Resources/GemDataEXTR.zip", 
-              destfile = "dados/GEMData.zip")
-arquivosGEM <- unzip(zipfile = "dados/GEMData.zip", list = T)
-commodities <- grep(pattern = "[C|c]ommodity", x = arquivosGEM)
-unzip(zipfile = "dados/GEMData.zip", files = arquivosGEM[commodities,1], exdir = "Dados")
-arquivo <- list.files("dados", pattern = ".xls")
-
-# Abre no R arquivo com dados dos precos mundais das princiais mercadorias
-precos <- read_excel(path = paste0("dados/",arquivo), sheet = 1)
-
-# Faz alteracoes necessarias nos dados
-precos <- precos[-1, ]
-names(precos)[1] <- "Ano"
-nomes_precos <- names(precos)
-nomes_precos <- gsub(pattern = "WLD", replacement = "", x = nomes_precos)
-names(precos) <- nomes_precos
-precos[, -1] <- sapply(precos[, -1], as.numeric)
-precos <- gather(data = precos, Mercadoria, Preço, -Ano)
-
-# Salva dados como objeto do R
-if (dir.exists("dados") == FALSE) dir.create("dados")
-saveRDS(object = precos, file = "dados/precos_commodities.rds")
+# # Download de dados do Banco Mundial
+# download.file("http://siteresources.worldbank.org/INTPROSPECTS/Resources/GemDataEXTR.zip", 
+#               destfile = "dados/GEMData.zip")
+# arquivosGEM <- unzip(zipfile = "dados/GEMData.zip", list = T)
+# commodities <- grep(pattern = "[C|c]ommodity", x = arquivosGEM)
+# unzip(zipfile = "dados/GEMData.zip", files = arquivosGEM[commodities,1], exdir = "Dados")
+# arquivo <- list.files("dados", pattern = ".xls")
+# 
+# # Abre no R arquivo com dados dos precos mundais das princiais mercadorias
+# precos <- read_excel(path = paste0("dados/",arquivo), sheet = 1)
+# 
+# # Faz alteracoes necessarias nos dados
+# precos <- precos[-1, ]
+# names(precos)[1] <- "Ano"
+# nomes_precos <- names(precos)
+# nomes_precos <- gsub(pattern = "WLD", replacement = "", x = nomes_precos)
+# names(precos) <- nomes_precos
+# precos[, -1] <- sapply(precos[, -1], as.numeric)
+# precos <- gather(data = precos, Mercadoria, Preço, -Ano)
+# 
+# # Salva dados como objeto do R
+# saveRDS(object = precos, file = "dados/precos_commodities.rds")
 
 ################################
 ####   Download de dados    ####
@@ -52,7 +50,7 @@ get.Comtrade <- function(r, # Area do relatorio. Um numero por pais
                          maxrec = 250000, # Maximo de observacoes
                          type = "C", # Comercio
                          freq = "A", # Anual
-                         px = "HS", # Sistema Harmonizado, como reportado
+                         px = "BEC", # Broad Economic Categories
                          ps = "recent", # Periodo da serie
                          p = "all", # Todos parceiros comerciais
                          rg = "all", # Regime de comercio (import, export)
@@ -106,11 +104,11 @@ get.Comtrade <- function(r, # Area do relatorio. Um numero por pais
 } # Fim da fun??o
 
 # Define data frame com codigo e nome dos pa?ses da Am?rica Latina
-am_lat <- data.frame(codigo_UNComTrade = c(32, 68, 76, 152, 170, 192, 214, 218,
-                                           222, 254, 320, 324, 332, 340, 388, 484,
+am_lat <- data.frame(codigo_UNComTrade = c(32, 68, 76, 152, 170, 188, 192, 214, 218,
+                                           222, 254, 320, 324, 328, 332, 340, 388, 484,
                                            558, 591, 600, 604, 780, 858, 862),
                      pais = c("Argentina", "Bolivia", "Brasil", "Chile",
-                              "Colombia", "Cuba", "Rep. Dominacana", "Ecuador",
+                              "Colombia", "Costa Rica", "Cuba", "Rep. Dominacana", "Ecuador",
                               "El Salvador", "Guiana Francesa", "Guatemala",
                               "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico",
                               "Nicaragua", "Panama", "Paraguay", "Peru",
@@ -126,17 +124,12 @@ names(comercioAL) <- am_lat$pais
 # Loop que tenta fazer o download dos dados de exporta??o de cada pa?s
 for (pais in seq_along(am_lat$pais)) {
   comercioAL[[pais]] <- try(get.Comtrade(am_lat[pais,1],
-                                         ps = "2002,2003,2004,2005,2006"))
+                                         ps = "2007,2008,2009,2010,2011"))
 } # Primeira rodada, erros de conexao sao comuns
 
 # Cria vetor que armazenar? os erros da ?ltima opera??o
 erros <- which(sapply(comercioAL, function (x) class(x) == "try-error") |
   sapply(comercioAL, function (x) any(sapply(x, is.null))))
-
-# Imprime a quatidade de erros occoridos, caso hajam
-warning(length(erros), if (length(erros) == 1) {" erro encontrado!"} else {" erros encontrados!"},
-    if(length(erros) >0 ) {
-      " Rode o c?digo abaixo para realizar nova tentativa de download para aqueles pa?ses em que ouve falha"})
 
 # Loop que dura enquanto persistirem erros na tentativa de download
 tentativa <- 0
@@ -148,22 +141,11 @@ while (length(erros) > 0 && tentativa < 10) {
   erros <- which(sapply(comercioAL, function (x) class(x) == "try-error") |
                    sapply(comercioAL, function (x) any(sapply(x, is.null))))
   
-  msg1 <- if (length(erros) == 1) " erro encontrado!" else " erros encontrados!"
-  msg2 <- if(length(erros) >0 ) " Realizarei uma nova tentativa" else ""
-  
-  warning(length(erros), msg1, msg2)
-  
   tentativa <- tentativa + 1
 }
 
-# O c?digo abaixo deve ser rodado caso ainda tenham persistido erros (elimine '#' da linha abaixo)
-# comercioAL[[which(erros == TRUE)]] <- (get.Comtrade(am_lat[which(erros == TRUE),1]))
-
-# Salva os dados como objeto(lista) do R
-# saveRDS(comercioAL, file = "comercio_listaJSON.rds")
-
-# Elimina lista dos paises que tenha falhado em fazer download (elimine '#' da linha abaixo)
-# comercioAL[erros] <- NULL
+# Elimina lista dos paises que tenha falhado em fazer download
+if (length(erros) > 0) comercioAL[erros] <- NULL
 
 AL_df <- vector('list', length(comercioAL))
 names(AL_df) <- names(comercioAL)
@@ -196,15 +178,16 @@ antigo <- readRDS('dados/comercioAL.RDS')[, 1:15] # ignora colunas que vai criar
 
 novo <- rbind(AL_df, antigo) %>% unique()
 
-dic <- fromJSON(file = 'https://comtrade.un.org/data/cache/classificationST.json')
+dic <- fromJSON(file = 'https://comtrade.un.org/data/cache/classificationBEC.json')
 dic <- do.call("rbind", dic$results) %>% as.data.frame()
 dicionario <- lapply(dic, unlist) %>% as.data.frame(stringsAsFactors = FALSE) %>% 
   filter(nchar(id) <= 2)
 dicionario_pai <- left_join(dicionario, dicionario[, 1:2], by = c("parent" = "id"))
 dicionario_pai$id <- as.integer(dicionario_pai$id)
 names(dicionario_pai) <- c("id", "id_desc", "pai", "pai_desc")
-comercio_total <- left_join(novo, dicionario_pai,
-                          by = c("cmdCode" = "id")) %>% unique()
+dicionario_pai$pai_desc[is.na(dicionario_pai$pai_desc)] <- "Total"
+comercio_total <- left_join(novo, dicionario_pai, 
+                            by = c("cmdCode" = "id")) %>% unique()
 
 saveRDS(comercio_total, file = "dados/comercioAL.RDS")
 saveRDS(comercio_total %>% filter(ptTitle == "World"), file = "dados/comercioAL_mundo.RDS")
