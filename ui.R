@@ -4,34 +4,10 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
   dashboardHeader(disable = TRUE),
   dashboardSidebar(disable = TRUE),
   
-  dashboardBody(tags$style('section.content {padding-top: 5px;
-                                             padding-bottom: 0px;
-                                             padding-right: 0px;
-                                             padding-left: 0px;
-                                             margin-top: 0px;
-		                                         margin-right: 0px;
-                                             margin-bottom: 0px;
-                                             margin-left: 0px;}
-                            div.tab-content, div.row, :after, :before {
-                              padding-bottom: 0px;
-                              margin-bottom: 0px;
-                              border-bottom-right-radius: 0px;
-                              border-bottom-left-radius: 0px;
-                              padding-right: 0px;
-                              padding-left: 0px;}'),
-    # tags$script(
-    #   "$(function() {
-    #      $('nav.navbar').attr('style','background-color: #00a65a;');
-    #      //$('div.navbar-header').attr('style','background-color: #008d4c;');
-    #      $('span.navbar-brand').attr('style','color: #fff; font-weight: bold');
-    #      $('#barra li a').attr('style','color: #fff; font-weight: bold;');
-    #      $('#barra li a').attr('style','.active, :focus {color: #555;}');
-    #    });"
-    #   ),
-    # tags$script(src = 'estiloBS.css', type = 'stylesheet'),
-    # navbarPage('', collapsible = TRUE, id = "barra", position = 'static-top',
-    tabBox(width = "100%",
-      tabPanel("Mercado Mundial", tabBox(width = "100%", side = "right",
+  dashboardBody(
+    tags$link(href = 'estilo.css', type = "text/css", rel = 'stylesheet', media = 'all'),
+    navbarPage('', collapsible = TRUE, id = "barra", position = 'static-top',
+      tabPanel("Mercado Mundial", tabBox(width = "100%",
       tabPanel("Toda região", fluidRow(
         column(5,
                box("Países", width = "100%",
@@ -184,7 +160,7 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
                                  href = "http://estadisticas.cepal.org/cepalstat/WEB_CEPALSTAT/Portada.asp?")))
         )
       )),
-      tabPanel("Classe trabalhadora", tabBox(width = "100%", side = "right",
+      tabPanel("Classe trabalhadora", tabBox(width = "100%", #side = "right",
       tabPanel("Desemprego", fluidRow(
         column(4,
                box(width = "100%",
