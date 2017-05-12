@@ -60,7 +60,7 @@ shinyServer(
         hPlot(data = ., y = "Valor", x = "yr", group = "Mercadoria", type = "area",
               title = "Volume de comercio, em bilhoes de US$")
       chart$plotOptions(area = list(stacking = 'normal', lineColor = '#666666',
-                        lineWidth = 1), replace = TRUE)
+                                    lineWidth = 1), replace = TRUE)
       return(chart)
     })
     
@@ -81,29 +81,29 @@ shinyServer(
     # Balança de capitais
     output$graf4 <- renderChart2({
       if (input$capitais == "Total") {
-        
+        rubricas <- unique(bal_pag$Rubrica)
       } else {
-        bal_pag %>% filter(Rubrica == input$capitais,
-                           Pais %in% input$paises.capitais,
-                           between(Ano, input$capitais_periodo[1],
-                                   input$capitais_periodo[2])) %>% 
-          mutate(valor = round(valor, 1)) %>% 
-          # rename("Bilhões de dólares" = valor) %>% 
-        hPlot(data = ., y = "valor", x = "Ano", group = "Pais", 
-              type = "line", title = "Conta corrente")
+        rubricas <- input$capitais
       }
       
+      bal_pag %>% filter(Rubrica %in% rubricas,
+                         Pais %in% input$paises.capitais,
+                         between(Ano, input$capitais_periodo[1],
+                                 input$capitais_periodo[2])) %>% 
+        mutate(valor = round(sum(valor), 1)) %>% 
+        hPlot(data = ., y = "valor", x = "Ano", group = "Pais", 
+              type = "line", title = "Conta corrente")
     })
     
     # Termos de troca
     output$graf_termos <- renderChart2({
-        termos_troca %>%
-          filter(Rubro == input$termos_var,
-                 between(Años_desc, input$termos_periodo[1],
-                         input$termos_periodo[2]),
-                 País %in% input$termos_pais) %>% 
-          mutate(Ano = as.numeric(Años_desc),
-                 País = País_desc, `Índice (2010 = 100)` = round(valor, 1)) %>% 
+      termos_troca %>%
+        filter(Rubro == input$termos_var,
+               between(Años_desc, input$termos_periodo[1],
+                       input$termos_periodo[2]),
+               País %in% input$termos_pais) %>% 
+        mutate(Ano = as.numeric(Años_desc),
+               País = País_desc, `Índice (2010 = 100)` = round(valor, 1)) %>% 
         hPlot(data = ., x = "Ano", y = "Índice (2010 = 100)",
               type = "line", group = "País")
     })
@@ -143,9 +143,9 @@ shinyServer(
     # Grafico expansao agricola
     output$graf_fronteira <- renderChart2({
       dado <- fronteira %>% filter(#Produto == input$var.fronteira,
-                           País %in% input$paises.fronteira,
-                           between(Ano, input$periodo.fronteira[1],
-                                   input$periodo.fronteira[2]))
+        País %in% input$paises.fronteira,
+        between(Ano, input$periodo.fronteira[1],
+                input$periodo.fronteira[2]))
       dado <- split.data.frame(dado, dado$Produto)
       pec <- select(dado[[1]], x = Ano, y = Valor, País)
       agri <- select(dado[[2]], x = Ano, y = Valor, País)
