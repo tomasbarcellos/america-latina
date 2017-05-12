@@ -21,5 +21,3 @@ options(scipen = 9e4, shiny.fullstacktrace = TRUE)
 
 base$rtTitle <- as.character(base$rtTitle)
 
-warning(getwd())
-

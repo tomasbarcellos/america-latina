@@ -21,7 +21,8 @@ shinyServer(
                   etiqueta = paste0(": US$ ",
                                     format(Valor, big.mark = ".", decimal.mark = ","),
                                     " Mi")) %>%
-        ungroup() 
+        ungroup()
+      
       por_pais <- por_pais %>% mutate(cor = if (n() <= 2) {
         rep("#238B45", n())
       } else {
@@ -50,7 +51,7 @@ shinyServer(
     })
     
     # Balança comercial detalhada
-    output$graf2 <- renderChart2({
+    output$graf2 <- renderChart({
       chart <- base %>% 
         filter(grepl(x = rgCode, pattern = input$tipo2),
                between(as.numeric(as.character(yr)), input$ano2[1], input$ano2[2]) ,
@@ -58,25 +59,11 @@ shinyServer(
         group_by(yr, Mercadoria = pai_desc) %>%
         summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
         hPlot(data = ., y = "Valor", x = "yr", group = "Mercadoria", type = "area",
-              title = "Volume de comercio, em bilhoes de US$")
+              title = "Volume de comércio, em bilhões de US$")
       chart$plotOptions(area = list(stacking = 'normal', lineColor = '#666666',
                                     lineWidth = 1), replace = TRUE)
-      return(chart)
+      chart
     })
-    
-    # # Preços das principais mercadorias
-    # output$graf3 <- renderPlotly({
-    #   precos.dim <- precos %>% filter(Mercadoria %in% input$mercadoria, 
-    #                                   Ano >= input$periodo[1], Ano <= input$periodo[2])
-    #   graf_precos <- ggplot(precos.dim, aes(x = Ano, y = preco)) + 
-    #     geom_line(data = precos.dim,
-    #               aes(col = Mercadoria), alpha = 0.9, size = 2) +
-    #     theme_bw() +
-    #     # scale_fill_discrete() +
-    #     labs(x = " ", y = "Índice (2010 = 100)")
-    #   
-    #   ggplotly(graf_precos) %>% layout(legend = list(orientation = 'h'))
-    # })
     
     # Balança de capitais
     output$graf4 <- renderChart2({
@@ -96,7 +83,7 @@ shinyServer(
     })
     
     # Termos de troca
-    output$graf_termos <- renderChart2({
+    output$graf_termos <- renderChart({
       termos_troca %>%
         filter(Rubro == input$termos_var,
                between(Años_desc, input$termos_periodo[1],
@@ -109,7 +96,7 @@ shinyServer(
     })
     
     # Gráfico desemprego
-    output$graf_desemprego <- renderChart2({
+    output$graf_desemprego <- renderChart({
       desemprego %>% filter(Sexo == input$genero.desemprego,
                             between(Años_desc, input$periodo.desemprego[1],
                                     input$periodo.desemprego[2]),
@@ -122,7 +109,7 @@ shinyServer(
     })
     
     # Gráfico de greves
-    output$graf_greves <- renderChart2({
+    output$graf_greves <- renderChart({
       vertical <- switch(input$greve.indicador,
                          "Number of strikes and lockouts by economic activity null" = "Número de greves",
                          "Days not worked due to strikes and lockouts by economic activity null" = "Dias não trabalhados (em razão de greves)",
@@ -136,24 +123,18 @@ shinyServer(
         summarise(País = first(ref_area.label),
                   Ano = first(time),
                   Valor = sum(obs_value)) %>% 
-        hPlot(data = ., x = "Ano", y = "Valor",
-              type = "line", group = "País", title = vertical)
+        hPlot(data = ., type = "line", x = "Ano", y = "Valor",
+              group = "País", title = vertical)
     })
     
     # Grafico expansao agricola
-    output$graf_fronteira <- renderChart2({
-      dado <- fronteira %>% filter(#Produto == input$var.fronteira,
+    output$graf_fronteira <- renderChart({
+      dado <- fronteira %>% filter(Produto == input$var.fronteira,
         País %in% input$paises.fronteira,
         between(Ano, input$periodo.fronteira[1],
-                input$periodo.fronteira[2]))
-      dado <- split.data.frame(dado, dado$Produto)
-      pec <- select(dado[[1]], x = Ano, y = Valor, País)
-      agri <- select(dado[[2]], x = Ano, y = Valor, País)
-      chart <- rCharts::Highcharts$new()
-      chart$series(data = pec, type = "line", group = "País", name = "Pecuária")
-      chart$series(data = agri, type = "line", group = "País", name = "Agricultura")
-      chart$yAxis(title = list(text = "Milhares de hectares"))
-      chart
+                input$periodo.fronteira[2])) %>% 
+        select(Produto, Ano, País, Valor) %>% 
+      hPlot(data = ., type = "line", x = 'Ano', y = 'Valor', group = 'País')
     })
     
   }

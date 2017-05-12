@@ -189,6 +189,16 @@ dicionario_pai$pai_desc[is.na(dicionario_pai$pai_desc)] <- "Total"
 comercio_total <- left_join(novo, dicionario_pai, 
                             by = c("cmdCode" = "id")) %>% unique()
 
+comercio_total$pai_desc <- sapply(comercio_total$pai, function(x) {
+  switch (x,
+          '1' = "Alimentos e bebidas",
+          '2' = "Produtos industriais",
+          '3' = "Combustíveis e lubrificantes",
+          '4' = "Bens de capital",
+          '5' = "Equipamentos de transporte",
+          '6' = "Bens de consumo")
+})
+
 saveRDS(comercio_total, file = "dados/comercioAL.RDS")
 saveRDS(comercio_total %>% filter(ptTitle == "World"), file = "dados/comercioAL_mundo.RDS")
 
