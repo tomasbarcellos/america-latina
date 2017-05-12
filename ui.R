@@ -112,12 +112,12 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
                ),
                box(width = "100%",
                    selectInput("termos_var", label = "Variável: ", 
-                               choices = list("Poder de compra das exportações de bens" = 4361,
-                                              "Termos de trocas de bens, FOB" = 4357,
-                                              "Porder de compra das exportações de bens e serviços" = 4359,
+                               choices = list("Termos de trocas de bens" = 4357,
+                                              "Termos de troca de serviços" = 4358,
                                               "Termos de troca de bens e serviços"= 4360,
-                                              "Termos de troca de serviços" = 4358),
-                               selected = 4360),
+                                              "Poder de compra das exportações de bens e serviços" = 4359,
+                                              "Poder de compra das exportações de bens" = 4361),
+                               selected = 4357),
                    sliderInput("termos_periodo", "", sep = "",
                                min = range(termos_troca$Años_desc)[1], max = range(termos_troca$Años_desc)[2],
                                value = range(termos_troca$Años_desc))
@@ -137,7 +137,15 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
         column(4, 
                box(width = "100%",
                    selectInput("capitais", label = "Variável: ",
-                               choices = unique(bal_pag$Rubrica), selected = "II.  BALANCE EN CUENTA DE CAPITAL"),
+                               choices = structure(
+                                 unique(bal_pag$Rubrica),
+                                 names = c("Investimento direto", 'Balança de rendas',
+                                           'Balança de transferências correntes',
+                                           'Exportações de bens e serviços',
+                                           'Importações de bens e serviços', 
+                                           "Conta corrente", 'Conta de capital',
+                                           'Conta financeira', 'Reservas internacionais')),
+                               selected = "Balance de renta"),
                    sliderInput("capitais_periodo", "", sep = "",
                                min = range(bal_pag$Ano)[1], max = range(bal_pag$Ano)[2],
                                value = range(bal_pag$Ano))
@@ -187,7 +195,7 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
         column(8,
                box(title = "Desemprego", width = "100%",
                    HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
-                   chartOutput("graf_desemprego", 'highcharts'),
+                   showOutput("graf_desemprego", 'highcharts'),
                    p("Fonte:", a("Comissão Econômica para a América Latina - CEPAL", target = "_blank",
                                  href = "http://estadisticas.cepal.org/cepalstat/WEB_CEPALSTAT/Portada.asp?")))
         )
@@ -217,7 +225,7 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
       column(8,
              box(title = NULL, width = "100%",
                  HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
-                 chartOutput("graf_greves", 'highcharts'),
+                 showOutput("graf_greves", 'highcharts'),
                  p("Fonte:", a("Organização Internacional do Trabalho - OIT", target = "_blank",
                                href = "http://www.ilo.org/ilostat/faces/wcnav_defaultSelection?")))
       )
@@ -250,7 +258,7 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
       column(8,
              box(title = "Indicadores de uso da terra", width = "100%", 
                  HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
-                 chartOutput("graf_fronteira", 'highcharts'),
+                 showOutput("graf_fronteira", 'highcharts'),
                  p("Fonte:", a("Organização das Nações Unidade para a Alimentação e Agricultura - FAO", target = "_blank",
                                href = "http://www.fao.org/statistics/en/")))
       )

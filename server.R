@@ -90,7 +90,7 @@ shinyServer(
                          Pais %in% input$paises.capitais,
                          between(Ano, input$capitais_periodo[1],
                                  input$capitais_periodo[2])) %>% 
-        mutate(valor = round(sum(valor), 1)) %>% 
+        mutate(valor = round(valor, 1)) %>% 
         hPlot(data = ., y = "valor", x = "Ano", group = "Pais", 
               type = "line", title = "Conta corrente")
     })
