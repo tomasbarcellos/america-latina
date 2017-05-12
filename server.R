@@ -43,23 +43,25 @@ shinyServer(
                                                         bringToFront = TRUE)) %>%
         setView(lng = -75, lat = -4, zoom = 3) %>% 
         addLegend("bottomleft", pal = colorBin("Greens", por_pais$Valor, 5), values = ~Valor,
-                  labFormat = labelFormat(prefix = "Mi US$"),
+                  labFormat = labelFormat(big.mark = ".", between = " a ",
+                                          prefix = "US$ ", suffix = " Bi", digits = 1,
+                                          transform = function(x) x/1000),
                   opacity = 1)
     })
     
     # Balança comercial detalhada
     output$graf2 <- renderChart2({
-      
-      base %>% 
+      chart <- base %>% 
         filter(grepl(x = rgCode, pattern = input$tipo2),
-               yr == as.character(input$ano2),
+               between(as.numeric(as.character(yr)), input$ano2[1], input$ano2[2]) ,
                rtTitle == input$pais) %>%
-        group_by(pai_desc) %>%
-        summarise(Mercadoria = first(pai_desc),
-                  Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
-        # arrange(desc(Valor)) %>% ungroup() %>% 
-        hPlot(data = ., y = "Valor", x = "Mercadoria", type = "bar",
+        group_by(yr, Mercadoria = pai_desc) %>%
+        summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
+        hPlot(data = ., y = "Valor", x = "yr", group = "Mercadoria", type = "area",
               title = "Volume de comercio, em bilhoes de US$")
+      chart$plotOptions(area = list(stacking = 'normal', lineColor = '#666666',
+                        lineWidth = 1), replace = TRUE)
+      return(chart)
     })
     
     # # Preços das principais mercadorias
@@ -123,7 +125,7 @@ shinyServer(
     output$graf_greves <- renderChart2({
       vertical <- switch(input$greve.indicador,
                          "Number of strikes and lockouts by economic activity null" = "Número de greves",
-                         "Days not worked due to strikes and lockouts by economic activity null" = "Dias nao trabalhados (em razão de greves)",
+                         "Days not worked due to strikes and lockouts by economic activity null" = "Dias não trabalhados (em razão de greves)",
                          "Workers involved in strikes and lockouts by economic activity (thousands)" = "Trabalhadores envolvidos em greves",
                          "Days not worked per 1000 workers due to strikes and lockouts by economic activity null" = "Dias não trabalhados (em razão de greves)\n por 1000 trabalhadores")
       
@@ -140,12 +142,18 @@ shinyServer(
     
     # Grafico expansao agricola
     output$graf_fronteira <- renderChart2({
-      fronteira %>% filter(Produto == input$var.fronteira,
+      dado <- fronteira %>% filter(#Produto == input$var.fronteira,
                            País %in% input$paises.fronteira,
                            between(Ano, input$periodo.fronteira[1],
-                                   input$periodo.fronteira[2])) %>% 
-        hPlot(data = ., x = "Ano", y = "Valor",
-              type = "line", group = "País")
+                                   input$periodo.fronteira[2]))
+      dado <- split.data.frame(dado, dado$Produto)
+      pec <- select(dado[[1]], x = Ano, y = Valor, País)
+      agri <- select(dado[[2]], x = Ano, y = Valor, País)
+      chart <- rCharts::Highcharts$new()
+      chart$series(data = pec, type = "line", group = "País", name = "Pecuária")
+      chart$series(data = agri, type = "line", group = "País", name = "Agricultura")
+      chart$yAxis(title = list(text = "Milhares de hectares"))
+      chart
     })
     
   }

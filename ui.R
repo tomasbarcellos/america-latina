@@ -60,7 +60,7 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
                                               "Exportação e Importação (corrente de comércio)" = '[1-4]'),
                                selected = "[1-4]"),
                    sliderInput("ano2", label = "Escolha o ano", sep = "", 
-                               dragRange = FALSE, min = 2007, max = 2016, value = 2016))), 
+                               dragRange = FALSE, min = 2007, max = 2016, value = c(2012, 2016)))), 
         column(8,
                box(title = "Balança comercial", width = "100%",
                    HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
@@ -240,8 +240,8 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
              ),
              box(width = "100%",
                  selectInput("var.fronteira", "Escolha uma variável: ",
-                             choices = list("Área plantada (milhares de ha)" =  "Superficie agrícola",
-                                            "Área para pasto (milhares de ha)" = "Praderas y pastos permanentes"))
+                             choices = list("Área plantada" =  "Superficie agrícola",
+                                            "Área para pasto" = "Praderas y pastos permanentes"))
              ),
              box(width = "100%",
                  sliderInput("periodo.fronteira", label = "Período", sep = "", 
