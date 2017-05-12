@@ -247,7 +247,7 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
       column(8,
              box(title = NULL, width = "100%",
                  HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
-                 showOutput("graf_greves"),
+                 showOutput("graf_greves", 'highcharts'),
                  p("Fonte:", a("Organização Internacional do Trabalho - OIT", target = "_blank",
                                href = "http://www.ilo.org/ilostat/faces/wcnav_defaultSelection?")))
       )
@@ -287,7 +287,7 @@ shinyUI(dashboardPage(title = "OLA - Observatório Latino-Americano", skin = "gr
       column(8,
              box(title = "Indicadores de uso da terra", width = "100%", 
                  HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
-                 showOutput("graf_fronteira"),
+                 showOutput("graf_fronteira", 'highcharts'),
                  p("Fonte:", a("Organização das Nações Unidade para a Alimentação e Agricultura - FAO", target = "_blank",
                                href = "http://www.fao.org/statistics/en/")))
       )
