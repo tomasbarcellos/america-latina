@@ -51,7 +51,7 @@ shinyServer(
     })
     
     # Balança comercial detalhada
-    output$graf2 <- renderChart({
+    output$graf2 <- renderChart2({
       chart <- base %>% 
         filter(grepl(x = rgCode, pattern = input$tipo2),
                between(as.numeric(as.character(yr)), input$ano2[1], input$ano2[2]) ,
@@ -60,8 +60,9 @@ shinyServer(
         summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
         hPlot(data = ., y = "Valor", x = "yr", group = "Mercadoria", type = "area",
               title = "Volume de comércio, em bilhões de US$")
-      chart$plotOptions(area = list(stacking = 'normal', lineColor = '#666666',
-                                    lineWidth = 1), replace = TRUE)
+      chart$plotOptions(area = list(stacking = 'normal', lineColor = '#d8d8d8',
+                                    lineWidth = 2),
+                        marker = list(enabled = 0), replace = TRUE)
       chart
     })
     
@@ -83,7 +84,7 @@ shinyServer(
     })
     
     # Termos de troca
-    output$graf_termos <- renderChart({
+    output$graf_termos <- renderChart2({
       termos_troca %>%
         filter(Rubro == input$termos_var,
                between(Años_desc, input$termos_periodo[1],
@@ -96,7 +97,7 @@ shinyServer(
     })
     
     # Gráfico desemprego
-    output$graf_desemprego <- renderChart({
+    output$graf_desemprego <- renderChart2({
       desemprego %>% filter(Sexo == input$genero.desemprego,
                             between(Años_desc, input$periodo.desemprego[1],
                                     input$periodo.desemprego[2]),
@@ -109,7 +110,7 @@ shinyServer(
     })
     
     # Gráfico de greves
-    output$graf_greves <- renderChart({
+    output$graf_greves <- renderChart2({
       vertical <- switch(input$greve.indicador,
                          "Number of strikes and lockouts by economic activity null" = "Número de greves",
                          "Days not worked due to strikes and lockouts by economic activity null" = "Dias não trabalhados (em razão de greves)",
@@ -128,7 +129,7 @@ shinyServer(
     })
     
     # Grafico expansao agricola
-    output$graf_fronteira <- renderChart({
+    output$graf_fronteira <- renderChart2({
       dado <- fronteira %>% filter(Produto == input$var.fronteira,
         País %in% input$paises.fronteira,
         between(Ano, input$periodo.fronteira[1],
