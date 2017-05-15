@@ -9,7 +9,7 @@
 }
 
 .navbar-default, #barra li a {
-    background-color: #00a65a;
+    background-color: #52b244;
     font-weight: bold;
     color: white;
 }
@@ -17,7 +17,7 @@
 #barra li.active a, #barra li.active a:focus, #barra li.active a:hover {
   color: #555;
   font-weight: bold;
-  background-color: #00a65a;
+  background-color: #52b244;
 }
 
 .navbar ul {
@@ -26,7 +26,7 @@
 }
 
 .navbar-default .navbar-toggle, .navbar-default .navbar-toggle:focus, .navbar-default .navbar-toggle:hover {
-  background-color: #00a65a;
+  background-color: #52b244;
   padding-right: 30px;
 }
 

@@ -20,4 +20,4 @@ bal_pag <- readRDS('dados/BP_AL.RDS')
 options(scipen = 9e4, shiny.fullstacktrace = TRUE)
 
 base$rtTitle <- as.character(base$rtTitle)
-
+base$yr <- as.numeric(as.character(base$yr))

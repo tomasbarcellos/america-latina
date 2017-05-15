@@ -58,11 +58,30 @@ shinyServer(
                rtTitle == input$pais) %>%
         group_by(yr, Mercadoria = pai_desc) %>%
         summarise(Valor = round(sum(TradeValue)/10^9, digits = 1)) %>%
-        hPlot(data = ., y = "Valor", x = "yr", group = "Mercadoria", type = "area",
-              title = "Volume de comércio, em bilhões de US$")
+        hPlot(data = ., y = "Valor", x = "yr", group = "Mercadoria", type = "area")
+      
+      chart$xAxis(title = list(text = " "))
+      chart$yAxis(title = list(text = "Bilhões de US$"))
       chart$plotOptions(area = list(stacking = 'normal', lineColor = '#d8d8d8',
                                     lineWidth = 2),
                         marker = list(enabled = 0), replace = TRUE)
+      chart$exporting(enabled = TRUE)
+      chart
+    })
+    
+    # Termos de troca
+    output$graf_termos <- renderChart2({
+      chart <- termos_troca %>%
+        filter(Rubro == input$termos_var,
+               between(Años_desc, input$termos_periodo[1],
+                       input$termos_periodo[2]),
+               País %in% input$termos_pais) %>% 
+        mutate(Ano = as.numeric(Años_desc),
+               País = País_desc, `Índice (2010 = 100)` = round(valor, 1)) %>% 
+        hPlot(data = ., x = "Ano", y = "Índice (2010 = 100)",
+              type = "line", group = "País")
+      
+      chart$exporting(enabled = TRUE)
       chart
     })
     
@@ -74,31 +93,22 @@ shinyServer(
         rubricas <- input$capitais
       }
       
-      bal_pag %>% filter(Rubrica %in% rubricas,
-                         Pais %in% input$paises.capitais,
-                         between(Ano, input$capitais_periodo[1],
-                                 input$capitais_periodo[2])) %>% 
+      chart <- bal_pag %>% filter(Rubrica %in% rubricas,
+                                  Pais %in% input$paises.capitais,
+                                  between(Ano, input$capitais_periodo[1],
+                                          input$capitais_periodo[2])) %>% 
         mutate(valor = round(valor, 1)) %>% 
         hPlot(data = ., y = "valor", x = "Ano", group = "Pais", 
-              type = "line", title = "Conta corrente")
-    })
-    
-    # Termos de troca
-    output$graf_termos <- renderChart2({
-      termos_troca %>%
-        filter(Rubro == input$termos_var,
-               between(Años_desc, input$termos_periodo[1],
-                       input$termos_periodo[2]),
-               País %in% input$termos_pais) %>% 
-        mutate(Ano = as.numeric(Años_desc),
-               País = País_desc, `Índice (2010 = 100)` = round(valor, 1)) %>% 
-        hPlot(data = ., x = "Ano", y = "Índice (2010 = 100)",
-              type = "line", group = "País")
+              type = "line")
+      chart$yAxis(title = list(text = "Milhões de US$"))
+      chart$xAxis(title = list(text = ""))
+      chart$exporting(enabled = TRUE)
+      chart
     })
     
     # Gráfico desemprego
     output$graf_desemprego <- renderChart2({
-      desemprego %>% filter(Sexo == input$genero.desemprego,
+      chart <- desemprego %>% filter(Sexo == input$genero.desemprego,
                             between(Años_desc, input$periodo.desemprego[1],
                                     input$periodo.desemprego[2]),
                             País_desc %in% input$paises.desemprego,
@@ -107,6 +117,9 @@ shinyServer(
                País = País_desc, `Taxa de desemprego (%)` = valor) %>% 
         hPlot(data = ., x = "Ano", y = "Taxa de desemprego (%)",
               type = "line", group = "País")
+      chart$xAxis(title = list(text = ""))
+      chart$exporting(enabled = TRUE)
+      chart
     })
     
     # Gráfico de greves
@@ -117,25 +130,37 @@ shinyServer(
                          "Workers involved in strikes and lockouts by economic activity (thousands)" = "Trabalhadores envolvidos em greves",
                          "Days not worked per 1000 workers due to strikes and lockouts by economic activity null" = "Dias não trabalhados (em razão de greves)\n por 1000 trabalhadores")
       
-      greves %>% filter(indicator.label == input$greve.indicador,
+      chart <- greves %>% filter(indicator.label == input$greve.indicador,
                         ref_area.label %in% input$greve.paises,
-                        between(time, input$greve.anos[1], input$greve.anos[2])) %>%
+                        between(time, input$greve.anos[1], input$greve.anos[2]),
+                        classif1.label ==  "Activity: Total") %>%
         group_by(ref_area.label, time) %>%
         summarise(País = first(ref_area.label),
                   Ano = first(time),
-                  Valor = sum(obs_value)) %>% 
+                  Valor = max(obs_value)) %>% 
         hPlot(data = ., type = "line", x = "Ano", y = "Valor",
-              group = "País", title = vertical)
+              group = "País")
+      
+      chart$yAxis(title = list(text = ""))
+      chart$xAxis(title = list(text = ""))
+      chart$exporting(enabled = TRUE)
+      chart
     })
     
     # Grafico expansao agricola
     output$graf_fronteira <- renderChart2({
-      dado <- fronteira %>% filter(Produto == input$var.fronteira,
-        País %in% input$paises.fronteira,
-        between(Ano, input$periodo.fronteira[1],
-                input$periodo.fronteira[2])) %>% 
+      chart <- fronteira %>% filter(Produto %in% input$var.fronteira,
+                                   País %in% input$paises.fronteira,
+                                   between(Ano, input$periodo.fronteira[1],
+                                           input$periodo.fronteira[2])) %>% 
         select(Produto, Ano, País, Valor) %>% 
+        mutate(Valor = 1000 * Valor) %>% 
       hPlot(data = ., type = "line", x = 'Ano', y = 'Valor', group = 'País')
+      
+      chart$yAxis(title = list(text = "Hectares"))
+      chart$xAxis(title = list(text = ""))
+      chart$exporting(enabled = TRUE)
+      chart
     })
     
   }

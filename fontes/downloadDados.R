@@ -124,7 +124,7 @@ names(comercioAL) <- am_lat$pais
 # Loop que tenta fazer o download dos dados de exporta??o de cada pa?s
 for (pais in seq_along(am_lat$pais)) {
   comercioAL[[pais]] <- try(get.Comtrade(am_lat[pais,1],
-                                         ps = "2007,2008,2009,2010,2011"))
+                                         ps = "2002,2003,2004,2005,2006"))
 } # Primeira rodada, erros de conexao sao comuns
 
 # Cria vetor que armazenar? os erros da ?ltima opera??o
@@ -192,11 +192,12 @@ comercio_total <- left_join(novo, dicionario_pai,
 comercio_total$pai_desc <- sapply(comercio_total$pai, function(x) {
   switch (x,
           '1' = "Alimentos e bebidas",
-          '2' = "Produtos industriais",
+          '2' = "Suprimentos industriais",
           '3' = "Combustíveis e lubrificantes",
           '4' = "Bens de capital",
           '5' = "Equipamentos de transporte",
-          '6' = "Bens de consumo")
+          '6' = "Bens de consumo",
+          '7' = "Outros")
 })
 
 saveRDS(comercio_total, file = "dados/comercioAL.RDS")
@@ -227,40 +228,40 @@ saveRDS(comercio_total %>% filter(ptTitle == "World"), file = "dados/comercioAL_
 # 
 # teste <- get.CEPAL(IdIndicador = 1629)
 
-capitais <- read.table("cepal.csv", stringsAsFactors = FALSE)
-capitais <- capitais[, c(2,4,6,8,10,12,14)]
-names(capitais) <- c("pais_CEPAL", "variavel_CEPAL", "ano_CEPAL", "fonte", "nota", "iso3", "valor")
-saveRDS(capitais, "capitais_todos.rds")
-
-am_lat2 <- data.frame(pais_CEPAL = c(216, 221, 222, 224, 225, 249, 228, 229,
-                                           230, 43448, 235, 237, 238, 239, 249, 233,
-                                           240, 241, 242, 244, 256, 258, 259),
-                     pais = c("Argentina", "Bolivia", "Brasil", "Chile",
-                              "Colombia", "Cuba", "Rep. Dominacana", "Ecuador",
-                              "El Salvador", "Guiana Francesa", "Guatemala",
-                              "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico",
-                              "Nicaragua", "Panama", "Paraguay", "Peru",
-                              "Trinidad y Tobago", "Uruguay", "Venezuela"),
-                     stringsAsFactors = FALSE)
-
-capitais.AL <-  capitais %>% filter(capitais$pais_CEPAL %in% am_lat2$pais_CEPAL)
-rm(capitais)
-capitais.AL <- left_join(x = capitais.AL, y = am_lat2, by = "pais_CEPAL")
-rm(am_lat2)
-
-anos <- read.table('anos_CEPAL.csv', stringsAsFactors = FALSE)
-anos <- anos[, c(2,4)]
-names(anos) <- c("ano", "ano_CEPAL")
-capitais.AL <- left_join(x = capitais.AL, y = anos, by = "ano_CEPAL")
-rm(anos)
-
-variavel <- read.table('variavel_CEPAL.csv', stringsAsFactors = FALSE)
-variavel <- variavel[, c(2,4)]
-names(variavel) <- c("variavel", "variavel_CEPAL")
-capitais.AL <- left_join(x = capitais.AL, y = variavel, by = "variavel_CEPAL")
-rm(variavel)
-
-saveRDS(capitais.AL, "capitais_AL.rds")
+# capitais <- read.table("cepal.csv", stringsAsFactors = FALSE)
+# capitais <- capitais[, c(2,4,6,8,10,12,14)]
+# names(capitais) <- c("pais_CEPAL", "variavel_CEPAL", "ano_CEPAL", "fonte", "nota", "iso3", "valor")
+# saveRDS(capitais, "capitais_todos.rds")
+# 
+# am_lat2 <- data.frame(pais_CEPAL = c(216, 221, 222, 224, 225, 249, 228, 229,
+#                                            230, 43448, 235, 237, 238, 239, 249, 233,
+#                                            240, 241, 242, 244, 256, 258, 259),
+#                      pais = c("Argentina", "Bolivia", "Brasil", "Chile",
+#                               "Colombia", "Cuba", "Rep. Dominacana", "Ecuador",
+#                               "El Salvador", "Guiana Francesa", "Guatemala",
+#                               "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico",
+#                               "Nicaragua", "Panama", "Paraguay", "Peru",
+#                               "Trinidad y Tobago", "Uruguay", "Venezuela"),
+#                      stringsAsFactors = FALSE)
+# 
+# capitais.AL <-  capitais %>% filter(capitais$pais_CEPAL %in% am_lat2$pais_CEPAL)
+# rm(capitais)
+# capitais.AL <- left_join(x = capitais.AL, y = am_lat2, by = "pais_CEPAL")
+# rm(am_lat2)
+# 
+# anos <- read.table('anos_CEPAL.csv', stringsAsFactors = FALSE)
+# anos <- anos[, c(2,4)]
+# names(anos) <- c("ano", "ano_CEPAL")
+# capitais.AL <- left_join(x = capitais.AL, y = anos, by = "ano_CEPAL")
+# rm(anos)
+# 
+# variavel <- read.table('variavel_CEPAL.csv', stringsAsFactors = FALSE)
+# variavel <- variavel[, c(2,4)]
+# names(variavel) <- c("variavel", "variavel_CEPAL")
+# capitais.AL <- left_join(x = capitais.AL, y = variavel, by = "variavel_CEPAL")
+# rm(variavel)
+# 
+# saveRDS(capitais.AL, "capitais_AL.rds")
 
 # Reservas internacionais
 library(ecoseries)
@@ -341,8 +342,17 @@ dado <- dado[, -c(1, 2, 13, 14)]
 names(dado) <- c("ISO3", "País", "Cod_Elemento", "Elemento",
                  "Cod_Produto", "Produto", "Cod_Ano", "Ano",
                  "Unidade", "Valor")
-dado <- filter(dado, Produto %in% c("Superficie agrícola", "Praderas y pastos permanentes"))
-saveRDS(dado, 'dados/fronteira_agri_AL.RDS')
+dado <- dado %>% 
+  filter(Produto %in% c("Superficie agrícola","Cultivos temporales",
+                        "Cultivos permanentes", "Praderas y pastos permanentes"))
+dado2 <- dado %>%
+  filter(Produto %in% c("Cultivos temporales", "Cultivos permanentes")) %>% 
+  group_by(ISO3, País, Cod_Elemento, Elemento, Cod_Ano, Ano, Unidade) %>% 
+  summarise(Cod_Produto = 99, Produto = "Agricultura", Valor = sum(Valor)) %>% 
+  ungroup() %>% 
+  bind_rows(dado)
+  
+saveRDS(dado2, 'dados/fronteira_agri_AL.RDS')
 
 ###########################
 ## Balança de pagamentos ##
