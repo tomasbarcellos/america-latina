@@ -41,7 +41,7 @@ shinyUI(dashboardPage(title = "Painel estatístico da América Latina", skin = "
                                choices = c("Total", as.character(unique(base$pai_desc))),
                                selected = "Total"),
                    sliderInput("ano", label = "Ano: ", sep = "", 
-                               dragRange = FALSE, min = 2007, max = 2016, value = 2016)
+                               dragRange = FALSE, min = 2007, max = 2018, value = 2018)
                )
         ),
         column(7, box(title = NULL, width = "100%",
@@ -74,7 +74,7 @@ shinyUI(dashboardPage(title = "Painel estatístico da América Latina", skin = "
                                               "Exportação e Importação (corrente de comércio)" = '[1-4]'),
                                selected = "[2|3]"),
                    sliderInput("ano2", label = "Período: ", sep = "", 
-                               dragRange = FALSE, min = 2007, max = 2016, value = c(2012, 2016)))), 
+                               dragRange = FALSE, min = 2007, max = 2018, value = c(2012, 2018)))), 
         column(8,
                box(title = NULL, width = "100%",
                    HTML('<style>.rChart {width: 100%; height: 100%}</style>'),
@@ -107,7 +107,7 @@ shinyUI(dashboardPage(title = "Painel estatístico da América Latina", skin = "
                                               "Termos de troca de bens e serviços"= 4360),
                                selected = 4357),
                    sliderInput("termos_periodo", label = "Período: ", sep = "",
-                               min = range(termos_troca$Años_desc)[1], max = range(termos_troca$Años_desc)[2],
+                               min = min(termos_troca$Años_desc), max = max(termos_troca$Años_desc),
                                value = range(termos_troca$Años_desc))
                )
         ), 
@@ -225,7 +225,7 @@ shinyUI(dashboardPage(title = "Painel estatístico da América Latina", skin = "
                                "Uruguay", "United States", "Saint Vincent and the Grenadines",
                                "Venezuela", "United States Virgin Islands")[-c(1:3, 5:7, 10:11, 33:34, 36)]),
                    selected = c(Argentina = "Argentina",
-                                Brasil = "Brazil",
+                                Bolívia = "Bolivia",
                                 Mexico = "Mexico"), inline = TRUE)
              ),
              box(width = "100%",
@@ -275,10 +275,10 @@ shinyUI(dashboardPage(title = "Painel estatístico da América Latina", skin = "
              box(width = "100%",
                  selectInput("var.fronteira", "Indicador: ",
                              choices = list("Área usada para agricultura" =  "Agricultura",
-                                            "Área usada para pastagens" = "Praderas y pastos permanentes",
-                                            "Total" =  "Superficie agrícola")),
+                                            "Área usada para pastagens" = "Pastagens",
+                                            "Total" = "Superficie agrícola")),
                  sliderInput("periodo.fronteira", label = "Período: ", sep = "", 
-                             min = 1961, max = 2015, value = c(1990,2015))
+                             min = 1961, max = 2016, value = c(1990, 2016))
              )),
       column(8,
              box(title = NULL, width = "100%", 
